@@ -158,7 +158,7 @@ int EpBlobFlash(char file[], uint32_t addr, Flags f) {
 	EpBootloader();
 	DelayMs(5);
 	EpRun();
-	DelayMs(50);
+	DelayMs(40);	// It looks like this delay is critical!
 
 	// Erase flash and prepare for data download
 	printf("Erasing WiFi module, 0x%08X bytes at 0x%08X... ",
@@ -176,6 +176,8 @@ int EpBlobFlash(char file[], uint32_t addr, Flags f) {
 		goto blob_flash_free;
 	}
 	printf("OK\n");
+
+	DelayMs(150);
 
 	// Flash blob, one sector each time.
 	// TODO: WARNING, might need to unlock DIO

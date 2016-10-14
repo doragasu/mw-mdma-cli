@@ -420,7 +420,7 @@ int MDMA_WiFiCtrl(MdmaWifiCtrlCode code) {
 	command_out.bytes[1] = code;
 	
 	// Exception to the norm: if SYNC, write the number of retries
-	if (code == MDMA_WIFI_CTRL_SYNC) command_out.bytes[2] = 100;
+	if (code == MDMA_WIFI_CTRL_SYNC) command_out.bytes[2] = 250;
 
 	// Send command
 	r = megawifi_bulk_send_command("WIFI_CTRL", &command_out);
