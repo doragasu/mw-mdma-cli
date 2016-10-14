@@ -4,14 +4,14 @@ MegaWiFi MegaDrive Memory Administration(MDMA) command line interface. This prog
 # Building
 Just install `libusb-1.0` development packages and the standard development tools. then cd to the path with the sources and call
 ```
-make
+$ make
 ```
 If everything goes OK, you should have the `mdma` binary sitting in the same directory.
 
 # Usage
 Once you have plugged a MegaWiFi cartridge into a MegaWiFi Programmer, you can use mdma. The command line application invocation must be as follows:
 ```
-mdma [option1 [option1_arg]] […] [optionN [optionN_arg]]
+$ mdma [option1 [option1_arg]] […] [optionN [optionN_arg]]
 ```
 The options (option1 ~ optionN) can be any combination of the ones listed below. Options must support short and long formats. Depending on the used option, and option argument (option_arg) must be supplied. Several options can be used on the same command, as long as the combination makes sense (e.g. it does make sense using the flash and verify options together, but using the help option with the flash option doesn't make too much sense).
 
@@ -48,13 +48,13 @@ The --pushbutton switch returns pushbutton status on the program exit code (so i
 E.g. if the button is pressed, and keeps being pressed when the program evaluates the --pushbutton function, the returned code will be 0x03 (pushbutton event + button pressed). If immediately called before the button is released, returned code will be 0x01 (no event + button pressed). If the button is released and then the program is called again, returned code will be 0x02 (pushbutton event + no button pressed).
 
 Some more examples of the command invocation and its arguments are:
-* `mdma -ef rom_file` → Erases entire cartridge and flashes rom_file.
-* `mdma --erase -f rom_file:0x100000` → Erases entire cartridge and flashes contents of rom_file, starting at address 0x100000.
-* `mdma -s 0x100000` → Erases flash sector containing 0x100000 address.
-* `mdma -Vf rom_file:0x100000:32768` → Flashes 32 KiB of rom_file to address 0x100000, and verifies the operation.
-* `mdma --read rom_file::1048576` → Reads 1 MiB of the cartridge flash, and writes it to rom_file. Note that if you want to specify length but do not want to specify address, you have to use two colon characters before length. This way, missing address argument is interpreted as 0.
-* `mdma -g 0xFF00FFFF0000:0x110000000000:0x000012340000` → Reads data on port A, and writes 0x1234 on ports PC and PD.
-* `mdma -w wifi-firm:0x40000` → Uploads wifi-firm firmware blob to the WiFi module, at address 0x40000.
+* `$ mdma -ef rom_file` → Erases entire cartridge and flashes rom_file.
+* `$ mdma --erase -f rom_file:0x100000` → Erases entire cartridge and flashes contents of rom_file, starting at address 0x100000.
+* `$ mdma -s 0x100000` → Erases flash sector containing 0x100000 address.
+* `$ mdma -Vf rom_file:0x100000:32768` → Flashes 32 KiB of rom_file to address 0x100000, and verifies the operation.
+* `$ mdma --read rom_file::1048576` → Reads 1 MiB of the cartridge flash, and writes it to rom_file. Note that if you want to specify length but do not want to specify address, you have to use two colon characters before length. This way, missing address argument is interpreted as 0.
+* `$ mdma -g 0xFF00FFFF0000:0x110000000000:0x000012340000` → Reads data on port A, and writes 0x1234 on ports PC and PD.
+* `$ mdma -w wifi-firm:0x40000` → Uploads wifi-firm firmware blob to the WiFi module, at address 0x40000.
 
 # Authors
 This program has been written by Migue/Manveru and doragasu.

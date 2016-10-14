@@ -1,4 +1,4 @@
-TARGET  = mdmap
+TARGET  = mdma
 CFLAGS ?= -O2 -Wall
 #CFLAGS ?= -g -Wall
 LFLAGS  = -lusb-1.0
