@@ -93,13 +93,13 @@ void PrintHelp(char *prgName) {
 	}
 	// Print additional info
 	printf("For file arguments, it is possible to specify start address and "
-		   "file length to read/write in bytes, with the following format:\n"
+		   "file length to read/write in words, with the following format:\n"
 		   "    file_name:memory_address:file_length\n\n"
 		   "Examples:\n"
 		   " - Erase Flash and write entire ROM to cartridge: %s -ef rom_file\n"
-		   " - Flash and verify 32 KiB to 0x700000: "
-		   "%s -Vf rom_file:0x700000:32768\n"
-		   " - Dump 1 MiB of the cartridge: %s -r rom_file::1048576\n",
+		   " - Flash and verify 32 KiB to word address 0x700000: "
+		   "%s -Vf rom_file:0x700000:16384\n"
+		   " - Dump 1 MiB of the cartridge: %s -r rom_file::0x80000\n",
 		   prgName, prgName, prgName);
 		   
 }
