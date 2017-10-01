@@ -31,6 +31,7 @@ typedef union {
 		uint8_t pushbutton:1;	/// Read pushbutton status
 		uint8_t dry:1;			/// Dry run
 		uint8_t boot:1;			/// Enter bootloader
+		uint8_t auto_erase:1;	/// Automatically erase flash
 		int cols;				/// Number of columns of the terminal
 	};
 } Flags;

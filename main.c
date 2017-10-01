@@ -16,9 +16,12 @@
 #include "progbar.h"
 #include "esp-prog.h"
 
+/// Maximum length of a file
 #define MAX_FILELEN		255
+/// Maximum length of a memory range.
+#define MAX_MEM_RANGE	24
 #define VERSION_MAJOR	0x00
-#define VERSION_MINOR	0x02
+#define VERSION_MINOR	0x03
 
 /// Structure containing a memory image (file, address and length)
 typedef struct {
@@ -39,6 +42,8 @@ const struct option opt[] = {
         {"read",        required_argument,  NULL,   'r'},
         {"erase",       no_argument,        NULL,   'e'},
         {"sect-erase",  required_argument,  NULL,   's'},
+		{"range-erase", required_argument,  NULL,   'A'},
+		{"auto-erase",  no_argument,		NULL,   'a'},
         {"verify",      no_argument,        NULL,   'V'},
         {"flash-id",    no_argument,        NULL,   'i'},
 		{"pushbutton",  no_argument,        NULL,   'p'},
@@ -57,6 +62,8 @@ const char *description[] = {
 	"Read ROM/Flash to file",
 	"Erase Flash",
 	"Erase flash sector",
+	"Erase flash memory range",
+	"Auto-erase (use it with flash command)",
 	"Verify flash after writing file",
 	"Obtain flash chip identifiers",
 	"Pushbutton status read (bit 1:event, bit0:pressed)",
@@ -165,12 +172,52 @@ void PrintMemError(int code) {
 	}
 }
 
+/************************************************************************//**
+ * Parses an input string containing a memory range, obtaining the address
+ * and length. If any of these parameters is not present, they are set to
+ * 0. Parameters are separated by colon character.
+ *
+ * \param[in]  inStr Input string containing the memory range.
+ * \param[out] addr  Parsed address.
+ * \param[out] len   Parsed length.
+ *
+ * \return 0 if OK, 1 if error.
+ ****************************************************************************/
+int ParseMemRange(char inStr[], uint32_t *addr, uint32_t *len) {
+	int32_t i;
+	char *saddr, *endPtr;
+	char scratch;
+	long val;
+
+	// Seek end of string or field separator (:)
+	for (i = 0; (i < (MAX_MEM_RANGE + 1)) && (inStr[i] != '\0') &&
+			(inStr[i] != ':'); i++);
+	
+	if (i == (MAX_MEM_RANGE + 1)) return 1;
+	// Store end of string or separator, and ensure proper end of string
+	scratch = inStr[i];
+	inStr[i++] = '\0';
+	// Convert to long
+	val = strtol(inStr, &endPtr, 0);
+	if (*endPtr != '\0' || val < 0) return 1;
+	*addr = val;
+	// If we had field separator, repeat scan for length
+	if (scratch == '\0') return 0;
+	saddr = inStr + i;
+	for (; (i < (MAX_MEM_RANGE + 1)) && (inStr[i] != '\0'); i++);
+	if (i == (MAX_MEM_RANGE + 1)) return 1;
+	val = strtol(saddr, &endPtr, 0);
+	if (*endPtr != '\0' || val < 0) return 1;
+	*len = val;
+	return 0;
+}
+
 // Allocs a buffer, reads a file to the buffer, and flashes the file pointed 
 // by the file argument. The buffer must be deallocated when not needed,
 // using free() call.
 // Note fWr.len is updated if not specified.
 // Note buffer is byte swapped before returned.
-u16 *AllocAndFlash(MemImage *fWr, int columns) {
+u16 *AllocAndFlash(MemImage *fWr, int autoErase, int columns) {
     FILE *rom;
 	u16 *writeBuf;
 	uint32_t addr;
@@ -179,6 +226,7 @@ u16 *AllocAndFlash(MemImage *fWr, int columns) {
 	// Address string, e.g.: 0x123456
 	char addrStr[9];
 
+	// Open the file to flash
 	if (!(rom = fopen(fWr->file, "rb"))) {
 		perror(fWr->file);
 		return NULL;
@@ -199,8 +247,21 @@ u16 *AllocAndFlash(MemImage *fWr, int columns) {
 		return NULL;
 	}
     fread(writeBuf, fWr->len<<1, 1, rom);
+	fclose(rom);
    	// Do byte swaps
    	for (i = 0; i < fWr->len; i++) ByteSwapWord(writeBuf[i]);
+
+	// If requested, perform auto-erase
+	if (autoErase) {
+		printf("Auto-erasing range 0x%06X:%06X... ", fWr->addr, fWr->len);
+		fflush(stdout);
+		if (MDMA_range_erase(fWr->addr, fWr->len)) {
+			free(writeBuf);
+			PrintErr("Auto-erase failed!\n");
+			return NULL;
+		}
+		printf("OK!\n");
+	}
 
    	printf("Flashing ROM %s starting at 0x%06X...\n", fWr->file, fWr->addr);
 
@@ -219,7 +280,6 @@ u16 *AllocAndFlash(MemImage *fWr, int columns) {
    	    ProgBarDraw(i, fWr->len, columns, addrStr);
 	}
    	putchar('\n');
-	fclose(rom);
 	return writeBuf;
 }
 
@@ -267,7 +327,7 @@ int main( int argc, char **argv )
 	/// Command-line flags
 	Flags f;
 	/// Sector erase address. Set to UINT32_MAX for none
-	int sect_erase = UINT32_MAX;
+	uint32_t sect_erase = UINT32_MAX;
 	/// Manual GPIO control
 	// TODO: Replace with suitable structure
 	int gpioCtl = FALSE;
@@ -283,6 +343,10 @@ int main( int argc, char **argv )
     u16 *write_buffer = NULL;
 	/// Buffer for reading cart data
 	u16 *read_buffer = NULL;
+	/// Address for memory erase operations
+	uint32_t eraseAddr = 0;
+	/// Length for memory erase operations
+	uint32_t eraseLen = 0;
 
 	// Just for loop iteration
 	int i;
@@ -297,38 +361,48 @@ int main( int argc, char **argv )
         /// Character returned by getopt_long()
         int c;
 
-        while ((c = getopt_long(argc, argv, "f:r:es:Vipg:w:bdRvh", opt, &opIdx)) != -1)
+        while ((c = getopt_long(argc, argv, "f:r:es:A:aVipg:w:bdRvh", opt, &opIdx)) != -1)
         {
 			// Parse command-line options
             switch (c)
             {
                 case 'f': // Write flash
-				fWr.file = optarg;
-				if ((errCode = ParseMemArgument(&fWr))) {
-					PrintErr("Error: On Flash file argument: ");
-					PrintMemError(errCode);
-					return 1;
-				}
-                break;
+					fWr.file = optarg;
+					if ((errCode = ParseMemArgument(&fWr))) {
+						PrintErr("Error: On Flash file argument: ");
+						PrintMemError(errCode);
+						return 1;
+					}
+					break;
 
                 case 'r': // Read flash
-				fRd.file = optarg;
-				if ((errCode = ParseMemArgument(&fRd))) {
-					PrintErr("Error: On ROM/Flash read argument: ");
-					PrintMemError(errCode);
-					return 1;
-				}
-                break;
+					fRd.file = optarg;
+					if ((errCode = ParseMemArgument(&fRd))) {
+						PrintErr("Error: On ROM/Flash read argument: ");
+						PrintMemError(errCode);
+						return 1;
+					}
+	                break;
 
                 case 'e': // Erase entire flash
-                {
 					f.erase = TRUE;
-                }
-                break;
+	                break;
 
 				case 's': // Erase sector
-                sect_erase = strtol( optarg, NULL, 16 );
-				break;
+	                sect_erase = strtol( optarg, NULL, 16 );
+					break;
+
+				case 'A': // Erase range
+					if ((errCode = ParseMemRange(optarg, &eraseAddr, &eraseLen)) ||
+							(0 == eraseLen)) {
+						PrintErr("Error: Invalid Flash erase range argument: %s\n", optarg);
+						return 1;
+					}
+					break;
+
+				case 'a': // Auto erase
+					f.auto_erase = TRUE;
+					break;
 
                 case 'V': // Verify flash write
 				f.verify = TRUE;
@@ -397,6 +471,37 @@ int main( int argc, char **argv )
 		return -1;
 	}
 
+	// Sanity checks
+	if (f.auto_erase && !fWr.file) {
+		PrintErr("Cannot auto-erase without writing to flash!\n");
+		return -1;
+	}
+	if (f.auto_erase && (sect_erase != UINT32_MAX)) {
+		PrintErr("Auto-erase and sector erase requested, aborting!\n");
+		return -1;
+	}
+	if (f.auto_erase && f.erase) {
+		PrintErr("Auto-erase and full erase requested, aborting!\n");
+		return -1;
+	}
+	if (f.auto_erase && eraseLen) {
+		PrintErr("Auto-erase and range erase requested, aborting!\n");
+		return -1;
+	}
+	if ((sect_erase != UINT32_MAX) && eraseLen) {
+		PrintErr("Sector erase and range erase requested, aborting!\n");
+		return -1;
+	}
+	if ((sect_erase != UINT32_MAX) && f.erase) {
+		PrintErr("Sector erase and full erase requested, aborting!\n");
+		return -1;
+	}
+	if (eraseLen && f.erase) {
+		PrintErr("Full erase and range erase requested, aborting!\n");
+		return -1;
+	}
+
+
 	if (f.verbose) {
 		printf("\nThe following actions will%s be performed (in order):\n",
 				f.dry?" NOT":"");
@@ -404,7 +509,10 @@ int main( int argc, char **argv )
 				f.dry?"====":"");
 		if (f.flashId) printf(" - Show Flash chip identification.\n");
 		if (f.erase) printf(" - Erase Flash.\n");
-		else if (sect_erase != UINT32_MAX) 
+		else if(f.auto_erase) printf(" - Auto-erase flash.\n");
+		else if (eraseLen) {
+			printf(" - Erase range 0x%X:%X.\n", eraseAddr, eraseLen);
+		} else if (sect_erase != UINT32_MAX)
 			printf(" - Erase sector at 0x%X.\n", sect_erase);
 		if (fWr.file) {
 		   printf(" - Flash %s", f.verify?"and verify ":"");
@@ -505,7 +613,6 @@ int main( int argc, char **argv )
 		MDMA_devId_get();
 	}
 	// Erase
-	// Support sector erase!
 	if (f.erase) {
 		printf("Erasing cart... ");
 		fflush(stdout);
@@ -519,11 +626,14 @@ int main( int argc, char **argv )
 	} else if (sect_erase != UINT32_MAX) {
 		printf("Erasing sector 0x%06X...\n", sect_erase);
 		MDMA_sect_erase(sect_erase);
+	} else if (eraseLen) {
+		printf("Erasing range 0x%X:%X...\n", eraseAddr, eraseLen);
+		MDMA_range_erase(eraseAddr, eraseLen);
 	}
 
 	// Flash
 	if (fWr.file) {
-		write_buffer = AllocAndFlash(&fWr, f.cols);
+		write_buffer = AllocAndFlash(&fWr, f.auto_erase, f.cols);
 		if (!write_buffer) {
 			errCode = 1;
 			goto dealloc_exit;

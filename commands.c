@@ -167,6 +167,40 @@ u16 MDMA_cart_erase()
 }
 
 //-----------------------------------------------------------------------------
+// MDMA_RANGE_ERASE
+//-----------------------------------------------------------------------------
+u16 MDMA_range_erase(uint32_t addr, uint32_t length) {
+	Command command_out = {{MDMA_RANGE_ERASE}};
+	Command command_in;
+	int r;
+
+	command_out.erase.addr[0] = addr & 0xFF;
+	command_out.erase.addr[1] = (addr>>8)  & 0xFF;
+	command_out.erase.addr[2] = (addr>>16) & 0xFF;
+	command_out.erase.dwlen[0] = length & 0xFF;
+	command_out.erase.dwlen[1] = (length>>8)  & 0xFF;
+	command_out.erase.dwlen[2] = (length>>16) & 0xFF;
+	command_out.erase.dwlen[3] = (length>>24) & 0xFF;
+
+	r = megawifi_bulk_send_command( "RANGE ERASE", &command_out );
+    if( r < 0 ) return -1;
+
+    r = megawifi_bulk_get_reply_data( &command_in, NULL, 0, CART_ERASE_TIMEOUT );
+    if( r < 0 ) return -1;
+
+
+    // Checks read info
+    if( command_in.frame.cmd != MDMA_OK ) {
+        printf( "Command field byte = 0x%.2X (MDMA_ERR) \n", command_in.frame.cmd );
+        printf( "Error: could not erase flash at 0x%X:%X \n", addr, length );
+    }
+
+
+
+	return 0;
+}
+
+//-----------------------------------------------------------------------------
 // MDMA_SECT_ERASE
 //-----------------------------------------------------------------------------
 u16 MDMA_sect_erase( int addr )

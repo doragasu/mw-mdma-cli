@@ -29,6 +29,7 @@
 #define MDMA_WIFI_CMD	   10 // Command forwarded to the WiFi chip.
 #define MDMA_WIFI_CMD_LONG 11 // Long command forwarded to the WiFi chip.
 #define MDMA_WIFI_CTRL     12 // WiFi chip control action (using GPIO pins).
+#define MDMA_RANGE_ERASE   13 // Erase a memory range of the flash chip
 #define MDMA_ERR          255 // Used to report ERROR status during command replies
 
 typedef enum {
@@ -92,6 +93,12 @@ typedef union
 
 	struct {
 		u8 cmd;
+		u8 addr[3];
+		u8 dwlen[4];
+	} erase;
+
+	struct {
+		u8 cmd;
 		u8 len[2];
 		u8 pad;
 		u8 data[MAX_WIFI_PAYLOAD_BYTES];
@@ -112,6 +119,8 @@ u16 MDMA_read( u16 wLen, int addr, u16 * data );
 u16 MDMA_cart_erase();
 
 u16 MDMA_sect_erase( int addr );
+
+u16 MDMA_range_erase(uint32_t addr, uint32_t length);
 
 u16 MDMA_write( u16 wLen, int addr, u16 * data );
 
