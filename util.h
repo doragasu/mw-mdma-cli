@@ -8,12 +8,25 @@
 #include <unistd.h>
 #endif
 
+//=============================================================================
+// TYPES
+//=============================================================================
+typedef char  s8;
+typedef short s16;
+typedef long  s32;
+typedef unsigned char  u8;
+typedef unsigned short u16;
+typedef unsigned long  u32;
+
 #ifndef TRUE
 #define TRUE 1
 #endif
 #ifndef FALSE
 #define FALSE 0
 #endif
+
+/// 16-bit byte swap macro
+#define ByteSwapWord(word)	do{(word) = ((word)>>8) | ((word)<<8);}while(0)
 
 #ifndef MAX
 #define MAX(a,b)	((a)>(b)?(a):(b))

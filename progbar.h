@@ -13,6 +13,10 @@
  * \date   2015
  ****************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /************************************************************************//**
  * Draws the progress bar.
  *
@@ -23,3 +27,8 @@
  ****************************************************************************/
 void ProgBarDraw(unsigned int pos, unsigned int max, unsigned int width,
 		char text[]);
+
+#ifdef __cplusplus
+}
+#endif
+

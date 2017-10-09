@@ -191,6 +191,10 @@ typedef struct {
 }EpSegHdr;
 /** \} */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int EpBlobFlash(char file[], uint32_t addr, Flags f);
 
 #define EpReset()		MDMA_WiFiCtrl(MDMA_WIFI_CTRL_RST)
@@ -203,6 +207,9 @@ int EpBlobFlash(char file[], uint32_t addr, Flags f);
 
 #define EpProgSync()	MDMA_WiFiCtrl(MDMA_WIFI_CTRL_SYNC)
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*_ESP_PROG_H_*/
 

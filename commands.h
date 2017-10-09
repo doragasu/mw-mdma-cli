@@ -11,6 +11,8 @@
 
 #include <libusb-1.0/libusb.h>
 
+#include "util.h"
+
 
 //=============================================================================
 // CONSTANTS
@@ -67,16 +69,6 @@ typedef enum {
 // optimum value to maximize speed
 #define MAX_USB_TRANSFER_LEN	384
 
-//=============================================================================
-// TYPES
-//=============================================================================
-typedef char  s8;
-typedef short s16;
-typedef long  s32;
-typedef unsigned char  u8;
-typedef unsigned short u16;
-typedef unsigned long  u32;
-
 
 typedef union
 {
@@ -106,6 +98,9 @@ typedef union
 
 } Command;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 //=============================================================================
 // FUNCTION PROTOTYPES
@@ -133,5 +128,9 @@ int MDMA_WiFiCmd(uint8_t *payload, uint8_t len, uint8_t *reply);
 int MDMA_WiFiCmdLong(uint8_t *payload, uint16_t len, uint8_t *reply);
 
 int MDMA_WiFiCtrl(MdmaWifiCtrlCode code);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // _COMMANDS_H_
