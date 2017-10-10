@@ -56,7 +56,8 @@ SOURCES       = main.cpp \
 		esp-prog.c \
 		mdma.c \
 		progbar.c \
-		flash_man.cpp moc_flashdlg.cpp
+		flash_man.cpp moc_flashdlg.cpp \
+		moc_flash_man.cpp
 OBJECTS       = main.o \
 		flashdlg.o \
 		commands.o \
@@ -64,7 +65,8 @@ OBJECTS       = main.o \
 		mdma.o \
 		progbar.o \
 		flash_man.o \
-		moc_flashdlg.o
+		moc_flashdlg.o \
+		moc_flash_man.o
 DIST          = /usr/lib/qt/mkspecs/features/spec_pre.prf \
 		/usr/lib/qt/mkspecs/common/unix.conf \
 		/usr/lib/qt/mkspecs/common/linux.conf \
@@ -82,9 +84,6 @@ DIST          = /usr/lib/qt/mkspecs/features/spec_pre.prf \
 		/usr/lib/qt/mkspecs/modules/qt_lib_core_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_dbus.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_dbus_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_designer.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_designer_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_designercomponents_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_devicediscovery_support_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_egl_support_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_eglfs_kms_support_private.pri \
@@ -95,17 +94,11 @@ DIST          = /usr/lib/qt/mkspecs/features/spec_pre.prf \
 		/usr/lib/qt/mkspecs/modules/qt_lib_glx_support_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_gui.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_gui_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_help.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_help_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_input_support_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_kms_support_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_linuxaccessibility_support_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_location.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_location_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_multimedia.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_multimedia_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_multimediawidgets.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_multimediawidgets_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_network.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_network_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_opengl.pri \
@@ -124,20 +117,13 @@ DIST          = /usr/lib/qt/mkspecs/features/spec_pre.prf \
 		/usr/lib/qt/mkspecs/modules/qt_lib_qmldevtools_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_qmltest.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_qmltest_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_qtmultimediaquicktools_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_quick.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_quick_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_quickparticles_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_quickwidgets.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_quickwidgets_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_script.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_script_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_scripttools.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_scripttools_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_sensors.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_sensors_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_serialport.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_serialport_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_service_support_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_sql.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_sql_private.pri \
@@ -146,23 +132,17 @@ DIST          = /usr/lib/qt/mkspecs/features/spec_pre.prf \
 		/usr/lib/qt/mkspecs/modules/qt_lib_testlib.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_testlib_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_theme_support_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_uiplugin.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_uitools.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_uitools_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_webchannel.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_webchannel_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_webkit.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_webkitwidgets.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_widgets.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_widgets_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_x11extras.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_x11extras_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_xcb_qpa_lib_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_xml.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_xml_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_xmlpatterns.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_xmlpatterns_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_phonon4qt5.pri \
 		/usr/lib/qt/mkspecs/features/qt_functions.prf \
 		/usr/lib/qt/mkspecs/features/qt_config.prf \
 		/usr/lib/qt/mkspecs/linux-g++/qmake.conf \
@@ -226,9 +206,6 @@ Makefile: mdma.pro /usr/lib/qt/mkspecs/linux-g++/qmake.conf /usr/lib/qt/mkspecs/
 		/usr/lib/qt/mkspecs/modules/qt_lib_core_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_dbus.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_dbus_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_designer.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_designer_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_designercomponents_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_devicediscovery_support_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_egl_support_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_eglfs_kms_support_private.pri \
@@ -239,17 +216,11 @@ Makefile: mdma.pro /usr/lib/qt/mkspecs/linux-g++/qmake.conf /usr/lib/qt/mkspecs/
 		/usr/lib/qt/mkspecs/modules/qt_lib_glx_support_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_gui.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_gui_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_help.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_help_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_input_support_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_kms_support_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_linuxaccessibility_support_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_location.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_location_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_multimedia.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_multimedia_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_multimediawidgets.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_multimediawidgets_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_network.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_network_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_opengl.pri \
@@ -268,20 +239,13 @@ Makefile: mdma.pro /usr/lib/qt/mkspecs/linux-g++/qmake.conf /usr/lib/qt/mkspecs/
 		/usr/lib/qt/mkspecs/modules/qt_lib_qmldevtools_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_qmltest.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_qmltest_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_qtmultimediaquicktools_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_quick.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_quick_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_quickparticles_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_quickwidgets.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_quickwidgets_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_script.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_script_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_scripttools.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_scripttools_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_sensors.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_sensors_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_serialport.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_serialport_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_service_support_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_sql.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_sql_private.pri \
@@ -290,23 +254,17 @@ Makefile: mdma.pro /usr/lib/qt/mkspecs/linux-g++/qmake.conf /usr/lib/qt/mkspecs/
 		/usr/lib/qt/mkspecs/modules/qt_lib_testlib.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_testlib_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_theme_support_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_uiplugin.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_uitools.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_uitools_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_webchannel.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_webchannel_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_webkit.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_webkitwidgets.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_widgets.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_widgets_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_x11extras.pri \
-		/usr/lib/qt/mkspecs/modules/qt_lib_x11extras_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_xcb_qpa_lib_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_xml.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_xml_private.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_xmlpatterns.pri \
 		/usr/lib/qt/mkspecs/modules/qt_lib_xmlpatterns_private.pri \
-		/usr/lib/qt/mkspecs/modules/qt_phonon4qt5.pri \
 		/usr/lib/qt/mkspecs/features/qt_functions.prf \
 		/usr/lib/qt/mkspecs/features/qt_config.prf \
 		/usr/lib/qt/mkspecs/linux-g++/qmake.conf \
@@ -352,9 +310,6 @@ Makefile: mdma.pro /usr/lib/qt/mkspecs/linux-g++/qmake.conf /usr/lib/qt/mkspecs/
 /usr/lib/qt/mkspecs/modules/qt_lib_core_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_dbus.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_dbus_private.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_designer.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_designer_private.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_designercomponents_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_devicediscovery_support_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_egl_support_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_eglfs_kms_support_private.pri:
@@ -365,17 +320,11 @@ Makefile: mdma.pro /usr/lib/qt/mkspecs/linux-g++/qmake.conf /usr/lib/qt/mkspecs/
 /usr/lib/qt/mkspecs/modules/qt_lib_glx_support_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_gui.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_gui_private.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_help.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_help_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_input_support_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_kms_support_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_linuxaccessibility_support_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_location.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_location_private.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_multimedia.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_multimedia_private.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_multimediawidgets.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_multimediawidgets_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_network.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_network_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_opengl.pri:
@@ -394,20 +343,13 @@ Makefile: mdma.pro /usr/lib/qt/mkspecs/linux-g++/qmake.conf /usr/lib/qt/mkspecs/
 /usr/lib/qt/mkspecs/modules/qt_lib_qmldevtools_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_qmltest.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_qmltest_private.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_qtmultimediaquicktools_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_quick.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_quick_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_quickparticles_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_quickwidgets.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_quickwidgets_private.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_script.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_script_private.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_scripttools.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_scripttools_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_sensors.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_sensors_private.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_serialport.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_serialport_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_service_support_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_sql.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_sql_private.pri:
@@ -416,23 +358,17 @@ Makefile: mdma.pro /usr/lib/qt/mkspecs/linux-g++/qmake.conf /usr/lib/qt/mkspecs/
 /usr/lib/qt/mkspecs/modules/qt_lib_testlib.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_testlib_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_theme_support_private.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_uiplugin.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_uitools.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_uitools_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_webchannel.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_webchannel_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_webkit.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_webkitwidgets.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_widgets.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_widgets_private.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_x11extras.pri:
-/usr/lib/qt/mkspecs/modules/qt_lib_x11extras_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_xcb_qpa_lib_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_xml.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_xml_private.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_xmlpatterns.pri:
 /usr/lib/qt/mkspecs/modules/qt_lib_xmlpatterns_private.pri:
-/usr/lib/qt/mkspecs/modules/qt_phonon4qt5.pri:
 /usr/lib/qt/mkspecs/features/qt_functions.prf:
 /usr/lib/qt/mkspecs/features/qt_config.prf:
 /usr/lib/qt/mkspecs/linux-g++/qmake.conf:
@@ -508,13 +444,18 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/qt/mkspecs/features/data/dummy.cpp
 	g++ -pipe -O2 -march=x86-64 -mtune=generic -O2 -pipe -fstack-protector-strong -fno-plt -Wall -W -dM -E -o moc_predefs.h /usr/lib/qt/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_flashdlg.cpp
+compiler_moc_header_make_all: moc_flashdlg.cpp moc_flash_man.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_flashdlg.cpp
+	-$(DEL_FILE) moc_flashdlg.cpp moc_flash_man.cpp
 moc_flashdlg.cpp: flashdlg.h \
 		moc_predefs.h \
 		/usr/bin/moc
 	/usr/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib/qt/mkspecs/linux-g++ -I/home/jalon/src/github/mw-mdma-cli -I/home/jalon/src/github/mw-mdma-cli -I/usr/include/qt -I/usr/include/qt/QtWidgets -I/usr/include/qt/QtGui -I/usr/include/qt/QtCore -I/usr/include/c++/7.2.0 -I/usr/include/c++/7.2.0/x86_64-pc-linux-gnu -I/usr/include/c++/7.2.0/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/7.2.0/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/7.2.0/include-fixed -I/usr/include flashdlg.h -o moc_flashdlg.cpp
+
+moc_flash_man.cpp: flash_man.h \
+		moc_predefs.h \
+		/usr/bin/moc
+	/usr/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib/qt/mkspecs/linux-g++ -I/home/jalon/src/github/mw-mdma-cli -I/home/jalon/src/github/mw-mdma-cli -I/usr/include/qt -I/usr/include/qt/QtWidgets -I/usr/include/qt/QtGui -I/usr/include/qt/QtCore -I/usr/include/c++/7.2.0 -I/usr/include/c++/7.2.0/x86_64-pc-linux-gnu -I/usr/include/c++/7.2.0/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/7.2.0/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/7.2.0/include-fixed -I/usr/include flash_man.h -o moc_flash_man.cpp
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
@@ -538,7 +479,8 @@ main.o: main.cpp commands.h \
 		flashdlg.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
-flashdlg.o: flashdlg.cpp flashdlg.h
+flashdlg.o: flashdlg.cpp flashdlg.h \
+		flash_man.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o flashdlg.o flashdlg.cpp
 
 commands.o: commands.c commands.h \
@@ -567,6 +509,9 @@ flash_man.o: flash_man.cpp flash_man.h \
 
 moc_flashdlg.o: moc_flashdlg.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_flashdlg.o moc_flashdlg.cpp
+
+moc_flash_man.o: moc_flash_man.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_flash_man.o moc_flash_man.cpp
 
 ####### Install
 

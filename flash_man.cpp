@@ -3,15 +3,10 @@
 #include "util.h"
 #include "commands.h"
 
-FlashMan::FlashMan() {
-	maxMinCb = NULL;
-	activityCb = NULL;
-}
-
 uint16_t *FlashMan::Program(const char filename[], bool autoErase,
 		uint32_t start, uint32_t len) {
     FILE *rom;
-	u16 *writeBuf;
+	uint16_t *writeBuf;
 	uint32_t addr;
 	int toWrite;
 	uint32_t i;
@@ -38,15 +33,15 @@ uint16_t *FlashMan::Program(const char filename[], bool autoErase,
 
 	// If requested, perform auto-erase
 	if (autoErase) {
-		if (activityCb) activityCb(FLASHMAN_ERASE, 0);
+		emit StateChanged(FLASHMAN_ERASE, 0);
 		if (MDMA_range_erase(start, len)) {
 			free(writeBuf);
 			return NULL;
 		}
 	}
 
-	if (maxMinCb) maxMinCb(0, len);
-	if (activityCb) activityCb(FLASHMAN_PROGRAM, 0);
+	emit RangeChanged(0, len);
+	emit StateChanged(FLASHMAN_PROGRAM, 0);
 
 	for (i = 0, addr = start; i < len;) {
 		toWrite = MIN(65536>>1, len - i);
@@ -58,14 +53,34 @@ uint16_t *FlashMan::Program(const char filename[], bool autoErase,
 		// Update vars and draw progress bar
 		i += toWrite;
 		addr += toWrite;
-		if (activityCb) activityCb(FLASHMAN_PROGRAM, i);
+		emit StateChanged(FLASHMAN_PROGRAM, i);
 	}
-	if (activityCb) activityCb(FLASHMAN_DONE, i);
+	emit StateChanged(FLASHMAN_DONE, i);
 	return writeBuf;
 }
 
-uint16_t *FlashMan::Read(const char filename[], uint32_t start,
-		uint32_t len) {
+uint16_t *FlashMan::Read(uint32_t start, uint32_t len) {
+	uint16_t *readBuf;
+	int toRead;
+	uint32_t addr;
+	uint32_t i;
+
+	readBuf = (uint16_t*)malloc(len<<1);
+	if (!readBuf) {
+		return NULL;
+	}
+
+	for (i = 0, addr = start; i < len;) {
+		toRead = MIN(65536>>1, len - i);
+		if (MDMA_read(toRead, addr, readBuf + i)) {
+			free(readBuf);
+			return NULL;
+		}
+		// Update vars and draw progress bar
+		i += toRead;
+		addr += toRead;
+	}
+	return readBuf;
 	return NULL;
 }
 
@@ -79,14 +94,6 @@ int FlashMan::FullErase(void) {
 
 int FlashMan::Verify(uint16_t *readBuf, uint16_t *writeBuf, uint32_t len) {
 	return 0;
-}
-
-void FlashMan::SetMaxMinCallback(MaxMinCb maxMinCb) {
-	this->maxMinCb = maxMinCb;
-}
-
-void FlashMan::SetActivityCallback(ActivityCb activityCb) {
-	this->activityCb = activityCb;
 }
 
 void FlashMan::BufFree(uint16_t *buf) {
