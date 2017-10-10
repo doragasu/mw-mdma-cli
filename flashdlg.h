@@ -7,6 +7,7 @@
 #include <QtWidgets/QCheckBox>
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QProgressBar>
+#include <QtWidgets/QLabel>
 
 
 class FlashDialog : public QDialog {
@@ -14,6 +15,8 @@ class FlashDialog : public QDialog {
 public:
 	/// Pointer to tabs from parent
 	QTabWidget *tabs;
+	/// Status label
+	QLabel *statusLab;
 	/// Pointer to progress bar from parent
 	QProgressBar *progBar;
 

@@ -18,6 +18,7 @@
 
 #ifdef QT
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QMessageBox>
 #include "flashdlg.h"
 #endif
 
@@ -25,9 +26,6 @@
 //=============================================================================
 // VARS
 //=============================================================================
-extern libusb_device_handle *megawifi_handle;
-extern libusb_device *megawifi_dev;
-
 
 const struct option opt[] = {
         {"flash",       required_argument,  NULL,   'f'},
@@ -136,6 +134,15 @@ int main( int argc, char **argv )
 	// If called with no arguments, use QT interface
 	if (argc <= 1) {
 		QApplication app (argc, argv);
+
+		// Try initialising USB device
+		if (UsbInit() < 0) {
+			QMessageBox::critical(NULL, "MDMA ERROR",
+					"Could not find MDMA programmer!\n"
+					"Please make sure MDMA programmer is\n"
+					"plugged and drivers/permissions are OK.");
+			return -1;
+		}
 	
 		FlashDialog dlg;
 		dlg.show();
@@ -346,53 +353,8 @@ int main( int argc, char **argv )
 	// Also set transparent cursor
 	printf("\e[?25l");
 #endif
-    // Init libusb
-    int r = libusb_init(NULL);
-	if (r < 0) {
-        PrintErr( "Error: could not init libusb\n" );
-        PrintErr( "   Code: %s\n", libusb_error_name(r) );
-        return -1;
-    }
 
-	// Uncomment this to flood the screen with libusb debug information
-	//libusb_set_debug(NULL, LIBUSB_LOG_LEVEL_DEBUG);
-
-
-    // Detecting megawifi device
-	megawifi_handle = libusb_open_device_with_vid_pid( NULL, MeGaWiFi_VID, MeGaWiFi_PID );
-
-	if( megawifi_handle == NULL ) {
-		PrintErr( "Error: could not open device %.4X : %.4X\n", MeGaWiFi_VID, MeGaWiFi_PID );
-		return -1;
-	}
-    else
-        PrintVerb( "Completed: opened device %.4X : %.4X\n", MeGaWiFi_VID, MeGaWiFi_PID );
-
-    megawifi_dev = libusb_get_device( megawifi_handle );
-
-
-    // Set megawifi configuration
-	r = libusb_set_configuration( megawifi_handle, MeGaWiFi_CONFIG );
-	if( r < 0 ) {
-        PrintErr( "Error: could not set configuration #%d\n", MeGaWiFi_CONFIG );
-        PrintErr( "   Code: %s\n", libusb_error_name(r) );
-        return -1;
-	}
-	else
-        PrintVerb( "Completed: set configuration #%d\n", MeGaWiFi_CONFIG );
-
-
-    // Claiming megawifi interface
-	r = libusb_claim_interface( megawifi_handle, MeGaWiFi_INTERF );
-    if( r != LIBUSB_SUCCESS )
-    {
-        PrintErr( "Error: could not claim interface #%d\n", MeGaWiFi_INTERF );
-        PrintErr( "   Code: %s\n", libusb_error_name(r) );
-        return -1;
-    }
-    else
-        PrintVerb( "Completed: claim interface #%d\n", MeGaWiFi_INTERF );
-
+	if (UsbInit() < 0) PrintErr("Could not open MDMA programmer!\n");
 
 	/****************** ↓↓↓↓↓↓ DO THE MAGIC HERE ↓↓↓↓↓↓ *******************/
 
@@ -534,13 +496,7 @@ dealloc_exit:
 	// Restore cursor
 	printf("\e[?25h");
 #endif
-    r = libusb_release_interface( megawifi_handle, 0 );
-
-    libusb_close( megawifi_handle );
-
-    libusb_exit( NULL );
-
-
+	UsbClose();
     return errCode;
 }
 

@@ -15,8 +15,8 @@ typedef enum {
 class FlashMan : public QObject {
 	Q_OBJECT
 public:
-	uint16_t *Program(const char filename[], bool autoErase = false,
-			uint32_t start = 0, uint32_t len = 0);
+	uint16_t *Program(const char filename[], bool autoErase,
+			uint32_t *start, uint32_t *len);
 
 	uint16_t *Read(uint32_t start, uint32_t len);
 
@@ -26,13 +26,15 @@ public:
 
 	int Verify(uint16_t *readBuf, uint16_t *writeBuf, uint32_t len);
 
+	void BufFree(uint16_t *buf);
+
 signals:
 	void RangeChanged(int min, int max);
 
-	void StateChanged(FlashState s, int cursor);
+	void StatusChanged(const QString &);
 
-private:
-	void BufFree(uint16_t *buf);
+	void ValueChanged(int value);
+
 };
 
 #endif /*_FLASH_MAN_H_*/

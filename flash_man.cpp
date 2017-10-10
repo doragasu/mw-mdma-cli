@@ -4,7 +4,7 @@
 #include "commands.h"
 
 uint16_t *FlashMan::Program(const char filename[], bool autoErase,
-		uint32_t start, uint32_t len) {
+		uint32_t *start, uint32_t *len) {
     FILE *rom;
 	uint16_t *writeBuf;
 	uint32_t addr;
@@ -15,36 +15,37 @@ uint16_t *FlashMan::Program(const char filename[], bool autoErase,
 	if (!(rom = fopen(filename, "rb"))) return NULL;
 
 	// Obtain length if not specified
-	if (!len) {
+	if (!(*len)) {
 	    fseek(rom, 0, SEEK_END);
-	    len = ftell(rom)>>1;
+	    *len = ftell(rom)>>1;
 	    fseek(rom, 0, SEEK_SET);
 	}
 
-    writeBuf = (uint16_t*)malloc(len<<1);
+    writeBuf = (uint16_t*)malloc(*len<<1);
 	if (!writeBuf) {
 		fclose(rom);
 		return NULL;
 	}
-    fread(writeBuf, len<<1, 1, rom);
+    fread(writeBuf, (*len)<<1, 1, rom);
 	fclose(rom);
    	// Do byte swaps
-   	for (i = 0; i < len; i++) ByteSwapWord(writeBuf[i]);
+   	for (i = 0; i < (*len); i++) ByteSwapWord(writeBuf[i]);
 
 	// If requested, perform auto-erase
 	if (autoErase) {
-		emit StateChanged(FLASHMAN_ERASE, 0);
-		if (MDMA_range_erase(start, len)) {
+		emit StatusChanged("Auto Erasing...");
+		if (MDMA_range_erase(*start, *len)) {
 			free(writeBuf);
 			return NULL;
 		}
 	}
 
-	emit RangeChanged(0, len);
-	emit StateChanged(FLASHMAN_PROGRAM, 0);
+	emit RangeChanged(0, *len);
+	emit ValueChanged(0);
+	emit StatusChanged("Programming");
 
-	for (i = 0, addr = start; i < len;) {
-		toWrite = MIN(65536>>1, len - i);
+	for (i = 0, addr = *start; i < (*len);) {
+		toWrite = MIN(65536>>1, (*len) - i);
 		if (MDMA_write(toWrite, addr, writeBuf + i)) {
 			free(writeBuf);
 			fclose(rom);
@@ -53,9 +54,10 @@ uint16_t *FlashMan::Program(const char filename[], bool autoErase,
 		// Update vars and draw progress bar
 		i += toWrite;
 		addr += toWrite;
-		emit StateChanged(FLASHMAN_PROGRAM, i);
+		emit ValueChanged(i);
 	}
-	emit StateChanged(FLASHMAN_DONE, i);
+	emit ValueChanged(i);
+	emit StatusChanged("Done");
 	return writeBuf;
 }
 

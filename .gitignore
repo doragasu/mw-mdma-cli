@@ -1,0 +1,13 @@
+*.o
+.qmake.stash
+.ycm_extra_conf.py
+*.vim
+moc_*.cpp
+moc_*.h
+obj
+roms
+tool
+*.bin
+mdma
+*.exe
+

@@ -21,8 +21,8 @@
 //=============================================================================
 // VARS
 //=============================================================================
-libusb_device_handle *megawifi_handle; // The megawifi device handle.
-libusb_device *megawifi_dev;
+static libusb_device_handle *megawifi_handle; // The megawifi device handle.
+static libusb_device *megawifi_dev;
 
 
 //=============================================================================
@@ -34,6 +34,61 @@ int megawifi_bulk_get_reply_data( Command * command, u16 *buffer, u16 length, in
 //=============================================================================
 // FUNCTION DECLARATIONS
 //=============================================================================
+
+/// USB initialization
+int UsbInit(void) {
+    // Init libusb
+    int r = libusb_init(NULL);
+	if (r < 0) {
+        PrintErr( "Error: could not init libusb\n" );
+        PrintErr( "   Code: %s\n", libusb_error_name(r) );
+        return -1;
+    }
+
+	// Uncomment this to flood the screen with libusb debug information
+	//libusb_set_debug(NULL, LIBUSB_LOG_LEVEL_DEBUG);
+
+
+    // Detecting megawifi device
+	megawifi_handle = libusb_open_device_with_vid_pid( NULL, MeGaWiFi_VID, MeGaWiFi_PID );
+
+	if( megawifi_handle == NULL ) {
+		PrintErr( "Error: could not open device %.4X : %.4X\n", MeGaWiFi_VID, MeGaWiFi_PID );
+		return -1;
+	}
+
+    megawifi_dev = libusb_get_device( megawifi_handle );
+
+
+    // Set megawifi configuration
+	r = libusb_set_configuration( megawifi_handle, MeGaWiFi_CONFIG );
+	if( r < 0 ) {
+        PrintErr( "Error: could not set configuration #%d\n", MeGaWiFi_CONFIG );
+        PrintErr( "   Code: %s\n", libusb_error_name(r) );
+        return -1;
+	}
+
+    // Claiming megawifi interface
+	r = libusb_claim_interface( megawifi_handle, MeGaWiFi_INTERF );
+    if( r != LIBUSB_SUCCESS )
+    {
+        PrintErr( "Error: could not claim interface #%d\n", MeGaWiFi_INTERF );
+        PrintErr( "   Code: %s\n", libusb_error_name(r) );
+        return -1;
+    }
+	return 0;
+}
+
+/// Ends USB session with device
+void UsbClose(void) {
+    libusb_release_interface( megawifi_handle, 0 );
+
+    libusb_close( megawifi_handle );
+
+    libusb_exit( NULL );
+}
+
+
 
 //-----------------------------------------------------------------------------
 // MDMA_MANID_GET

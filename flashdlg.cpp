@@ -2,6 +2,7 @@
 #include <QtWidgets/QLayout>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 #include "flashdlg.h"
 
@@ -144,24 +145,56 @@ void FlashWriteTab::ShowFileDialog(void) {
 }
 
 void FlashWriteTab::Flash(void) {
-	uint16_t *buf;
+	uint16_t *wrBuf = NULL;
+	uint16_t *rdBuf = NULL;
+	uint32_t start = 0;
+	uint32_t len = 0;
+
 	if (fileLe->text().isEmpty()) return;
 	dlg->tabs->setDisabled(true);
-	FlashMan *fm = new FlashMan();
-	connect(fm, &FlashMan::RangeChanged, dlg->progBar,
+	FlashMan fm;
+	connect(&fm, &FlashMan::RangeChanged, dlg->progBar,
 			&QProgressBar::setRange);
 	dlg->progBar->setVisible(true);
 
-	buf = fm->Program(fileLe->text().toStdString().c_str(),
-			autoCb->isChecked());
-	if (!buf) {
+	// Start programming
+	wrBuf = fm.Program(fileLe->text().toStdString().c_str(),
+			autoCb->isChecked(), &start, &len);
+	if (!wrBuf) {
 		/// \todo show msg box with error and return
+		QMessageBox::warning(this, "Program failed",
+				"Cannot program file!");
 		dlg->progBar->setVisible(false);
 		dlg->tabs->setDisabled(false);
+		dlg->statusLab->setText("Done!");
 		return;
 	}
+	// If verify requested, do it!
 	if (verifyCb->isChecked()) {
+		rdBuf = fm.Read(start, len);
+		if (!rdBuf) {
+			fm.BufFree(wrBuf);
+			QMessageBox::warning(this, "Verify failed",
+					"Cannot allocate buffer!");
+			dlg->progBar->setVisible(false);
+			dlg->tabs->setDisabled(false);
+			dlg->statusLab->setText("Done!");
+			return;
+		}
+		for (uint32_t i = 0; i < len; i++) {
+			if (wrBuf[i] != rdBuf[i]) {
+				QString str;
+				str.sprintf("Verify failed at pos: 0x%X!", i);
+				QMessageBox::warning(this, "Verify failed", str);
+			}
+		}
 	}
+	if (wrBuf) fm.BufFree(wrBuf);
+	if (rdBuf) fm.BufFree(rdBuf);
+	dlg->progBar->setVisible(false);
+	dlg->tabs->setDisabled(false);
+	disconnect(this, 0, 0, 0);
+	dlg->statusLab->setText("Done!");
 }
 
 FlashDialog::FlashDialog(void) {
@@ -174,13 +207,20 @@ void FlashDialog::InitUI(void) {
 	tabs->addTab(new FlashReadTab,  tr("READ"));
 	tabs->addTab(new FlashEraseTab, tr("ERASE"));
 	tabs->addTab(new FlashInfoTab,  tr("INFO"));
+
+	statusLab = new QLabel("Ready!");
+	statusLab->setFixedWidth(60);
 	progBar = new QProgressBar;
 	progBar->setVisible(false);
 	QPushButton *btnQuit = new QPushButton("Exit");
 	btnQuit->setDefault(true);
 
+	connect(btnQuit, SIGNAL(clicked()), this, SLOT(close()));
+
 	QHBoxLayout *btnLayout = new QHBoxLayout;
+	btnLayout->addWidget(statusLab);
 	btnLayout->addWidget(progBar);
+//	btnLayout->addStretch(1);
 	btnLayout->addWidget(btnQuit);
 	btnLayout->setAlignment(Qt::AlignRight);
 

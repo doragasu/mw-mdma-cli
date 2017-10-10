@@ -105,6 +105,11 @@ extern "C" {
 //=============================================================================
 // FUNCTION PROTOTYPES
 //=============================================================================
+int UsbInit(void);
+
+/// Ends USB session with device
+void UsbClose(void);
+
 u16 MDMA_manId_get();
 
 u16 MDMA_devId_get();
