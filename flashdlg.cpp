@@ -9,7 +9,8 @@
 #include "flash_man.h"
 
 
-FlashInfoTab::FlashInfoTab(void) {
+FlashInfoTab::FlashInfoTab(FlashDialog *dlg) {
+	this->dlg = dlg;
 	InitUI();
 }
 
@@ -41,7 +42,8 @@ void FlashInfoTab::InitUI(void) {
 	setLayout(mainLayout);
 }
 
-FlashEraseTab::FlashEraseTab(void) {
+FlashEraseTab::FlashEraseTab(FlashDialog *dlg) {
+	this->dlg = dlg;
 
 	InitUI();
 }
@@ -49,7 +51,8 @@ FlashEraseTab::FlashEraseTab(void) {
 void FlashEraseTab::InitUI(void) {
 }
 
-FlashReadTab::FlashReadTab(void) {
+FlashReadTab::FlashReadTab(FlashDialog *dlg) {
+	this->dlg = dlg;
 	InitUI();
 }
 
@@ -59,6 +62,10 @@ void FlashReadTab::InitUI(void) {
 	fileLe = new QLineEdit;
 	QPushButton *fOpenBtn = new QPushButton("...");
 	fOpenBtn->setFixedWidth(30);
+	QLabel *startLb = new QLabel("Start: ");
+	QLineEdit *start = new QLineEdit("0x000000");
+	QLabel *lengthLb = new QLabel("End: ");
+	QLineEdit *length = new QLineEdit("0x400000");
 	QPushButton *readBtn = new QPushButton("Read!");
 
 	// Connect signals to slots
@@ -70,6 +77,12 @@ void FlashReadTab::InitUI(void) {
 	fileLayout->addWidget(fileLe);
 	fileLayout->addWidget(fOpenBtn);
 
+	QHBoxLayout *rangeLayout = new QHBoxLayout;
+	rangeLayout->addWidget(startLb);
+	rangeLayout->addWidget(start);
+	rangeLayout->addWidget(lengthLb);
+	rangeLayout->addWidget(length);
+
 	QHBoxLayout *statLayout = new QHBoxLayout;
 	statLayout->addWidget(readBtn);
 	statLayout->setAlignment(Qt::AlignRight);
@@ -77,6 +90,7 @@ void FlashReadTab::InitUI(void) {
 	QVBoxLayout *mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(romLab);
 	mainLayout->addLayout(fileLayout);
+	mainLayout->addLayout(rangeLayout);
 	mainLayout->addStretch(1);
 	mainLayout->addLayout(statLayout);
 
@@ -92,7 +106,30 @@ void FlashReadTab::ShowFileDialog(void) {
 }
 
 void FlashReadTab::Read(void) {
-	setDisabled(true);
+	uint16_t *rdBuf = NULL;
+
+	if (fileLe->text().isEmpty()) return;
+	dlg->tabs->setDisabled(true);
+	dlg->progBar->setVisible(true);
+	// Create Flash Manager and connect signals to UI control slots
+	FlashMan fm;
+	connect(&fm, &FlashMan::RangeChanged, dlg->progBar,
+			&QProgressBar::setRange);
+	connect(&fm, &FlashMan::ValueChanged, dlg->progBar,
+			&QProgressBar::setValue);
+	connect(&fm, &FlashMan::StatusChanged, dlg->statusLab, &QLabel::setText);
+
+//	// Start reading
+//	rdBuf = fm.Read(start, len);
+//	if (!rdBuf) {
+//		fm.BufFree(wrBuf);
+//		QMessageBox::warning(this, "Verify failed",
+//				"Cannot allocate buffer!");
+//		dlg->progBar->setVisible(false);
+//		dlg->tabs->setDisabled(false);
+//		dlg->statusLab->setText("Done!");
+//		return;
+//	}
 }
 
 FlashWriteTab::FlashWriteTab(FlashDialog *dlg) {
@@ -152,10 +189,14 @@ void FlashWriteTab::Flash(void) {
 
 	if (fileLe->text().isEmpty()) return;
 	dlg->tabs->setDisabled(true);
+	dlg->progBar->setVisible(true);
+	// Create Flash Manager and connect signals to UI control slots
 	FlashMan fm;
 	connect(&fm, &FlashMan::RangeChanged, dlg->progBar,
 			&QProgressBar::setRange);
-	dlg->progBar->setVisible(true);
+	connect(&fm, &FlashMan::ValueChanged, dlg->progBar,
+			&QProgressBar::setValue);
+	connect(&fm, &FlashMan::StatusChanged, dlg->statusLab, &QLabel::setText);
 
 	// Start programming
 	wrBuf = fm.Program(fileLe->text().toStdString().c_str(),
@@ -204,9 +245,9 @@ FlashDialog::FlashDialog(void) {
 void FlashDialog::InitUI(void) {
 	tabs = new QTabWidget;
 	tabs->addTab(new FlashWriteTab(this), tr("WRITE"));
-	tabs->addTab(new FlashReadTab,  tr("READ"));
-	tabs->addTab(new FlashEraseTab, tr("ERASE"));
-	tabs->addTab(new FlashInfoTab,  tr("INFO"));
+	tabs->addTab(new FlashReadTab(this),  tr("READ"));
+	tabs->addTab(new FlashEraseTab(this), tr("ERASE"));
+	tabs->addTab(new FlashInfoTab(this),  tr("INFO"));
 
 	statusLab = new QLabel("Ready!");
 	statusLab->setFixedWidth(60);
@@ -219,10 +260,10 @@ void FlashDialog::InitUI(void) {
 
 	QHBoxLayout *btnLayout = new QHBoxLayout;
 	btnLayout->addWidget(statusLab);
-	btnLayout->addWidget(progBar);
+	btnLayout->addWidget(progBar, 1);
 //	btnLayout->addStretch(1);
 	btnLayout->addWidget(btnQuit);
-	btnLayout->setAlignment(Qt::AlignRight);
+//	btnLayout->setAlignment(Qt::AlignRight);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(tabs);
@@ -230,7 +271,7 @@ void FlashDialog::InitUI(void) {
 
 	setLayout(mainLayout);
 
-	setGeometry(300, 300, 350, 300);	
+	setGeometry(0, 0, 350, 300);	
 	setWindowTitle("MDMA");
 }
 

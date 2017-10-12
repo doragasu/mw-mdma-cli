@@ -31,7 +31,7 @@ public:
 signals:
 	void RangeChanged(int min, int max);
 
-	void StatusChanged(const QString &);
+	void StatusChanged(const QString &status);
 
 	void ValueChanged(int value);
 

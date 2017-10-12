@@ -67,6 +67,10 @@ uint16_t *FlashMan::Read(uint32_t start, uint32_t len) {
 	uint32_t addr;
 	uint32_t i;
 
+	emit RangeChanged(0, len);
+	emit ValueChanged(0);
+	emit StatusChanged("Reading");
+
 	readBuf = (uint16_t*)malloc(len<<1);
 	if (!readBuf) {
 		return NULL;
@@ -81,9 +85,11 @@ uint16_t *FlashMan::Read(uint32_t start, uint32_t len) {
 		// Update vars and draw progress bar
 		i += toRead;
 		addr += toRead;
+		emit ValueChanged(i);
 	}
+	emit ValueChanged(i);
+	emit StatusChanged("Done");
 	return readBuf;
-	return NULL;
 }
 
 int FlashMan::RangeErase(uint32_t start, uint32_t len) {

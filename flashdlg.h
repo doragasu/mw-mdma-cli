@@ -30,46 +30,52 @@ private:
 class FlashInfoTab : public QWidget {
 	Q_OBJECT
 public:
-	FlashInfoTab(void);
+	FlashInfoTab(FlashDialog *dlg);
 
 private:
+	/// Parent dialog
+	FlashDialog *dlg;
 	void InitUI(void);
 };
 
 class FlashEraseTab : public QWidget {
 	Q_OBJECT
 public:
-	FlashEraseTab(void);
+	FlashEraseTab(FlashDialog *dlg);
 
 private:
+	/// Parent dialog
+	FlashDialog *dlg;
 	void InitUI(void);
 };
 
-
+/// Class handling the READ tab
 class FlashReadTab : public QWidget {
 	Q_OBJECT
 public:
-	FlashReadTab(void);
+	FlashReadTab(FlashDialog *dlg);
 
 public slots:
-	void ShowFileDialog(void);
 	void Read(void);
+	void ShowFileDialog(void);
 
 private:
+	/// Parent dialog
+	FlashDialog *dlg;
 	/// File to read
 	QLineEdit *fileLe;
 	void InitUI(void);
 };
 
+/// Class handling the WRITE tab
 class FlashWriteTab : public QWidget {
 	Q_OBJECT
 public:
 	FlashWriteTab(FlashDialog *dlg);
-//	static void SetRange(int min, int max);
 
 public slots:
-	void ShowFileDialog(void);
 	void Flash(void);
+	void ShowFileDialog(void);
 
 private:
 	/// Parent dialog
@@ -79,6 +85,7 @@ private:
 	QCheckBox *autoCb;
 	QCheckBox *verifyCb;
 	void InitUI(void);
+	FlashWriteTab();
 };
 
 #endif /*_FLASHDLG_H_*/

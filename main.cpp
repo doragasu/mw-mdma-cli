@@ -141,7 +141,7 @@ int main( int argc, char **argv )
 					"Could not find MDMA programmer!\n"
 					"Please make sure MDMA programmer is\n"
 					"plugged and drivers/permissions are OK.");
-			return -1;
+//			return -1;
 		}
 	
 		FlashDialog dlg;
