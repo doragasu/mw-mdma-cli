@@ -24,13 +24,13 @@ The options (option1 ~ optionN) can be any combination of the ones listed below.
 
 | Option | Argument type | Description |
 |---|---|---|
-| --qt-gui | -Q | N/A | Use the Qt GUI (if supported). |
+| --qt-gui, -Q | N/A | Use the Qt GUI (if supported). |
 | --flash, -f | R - File | Programs the contents of a file to the cartridge flash chip. |
 | --read, -r | R - File | Read the flash chip, storing contents on a file. |
 | --erase, -e | N/A | Erase entire flash chip. |
 | --sect-erase, -s | R - Address | Erase flash sector corresponding to address argument. |
-| --range-erase | -A | R - File | Erase flash memory range. |
-| --auto-erase | -a | N/A | Auto-erase (use it with flash command). |
+| --range-erase, -A | R - File | Erase flash memory range. |
+| --auto-erase, -a | N/A | Auto-erase (use it with flash command). |
 | --verify, -V | N/A | Verify written file after a flash operation. |
 | --flash-id, -i | N/A | Print information about the flash chip installed on the cart. |
 | --gpio-ctrl, -g | R - Pin data | Manually control GPIO port pins of the microcontroller. |
