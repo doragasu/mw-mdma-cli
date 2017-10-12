@@ -1,12 +1,19 @@
 # mw-mdma-cli
-MegaWiFi MegaDrive Memory Administration(MDMA) command line interface. This program allows to read and write ROMs from/to MegaWiFi cartridges, using a MegaWiFi programmer. It also allows to upload firmware blobs to the in-cart ESP8266 WiFi module.
+MegaWiFi MegaDrive Memory Administration(MDMA) command line interface. This program allows to read and write ROMs from/to MegaWiFi cartridges, using a MegaWiFi programmer. It also allows to upload firmware blobs to the in-cart ESP8266 WiFi module. Starting with version 0.4, the program can also be built with a nice Qt5 GUI.
 
 # Building
-Just install `libusb-1.0` development packages and the standard development tools. then cd to the path with the sources and call
+For the basic CLI version, you just need to install `libusb-1.0` development packages and the standard development tools. then cd to the path with the sources and call
 ```
-$ make
+$ make -f Makefile-no-qt
 ```
 If everything goes OK, you should have the `mdma` binary sitting in the same directory.
+
+If you want to be able to launch the Qt GUI (in addition to being able to use the program in CLI mode), you will have to install the `qt5-base` development packages (I think it is called `qt5-default` in Ubuntu and derivatives). Then run:
+```
+$ qt5-qmake
+$ make
+```
+If the build process completes successfully, you should be able to run `mdma -Q` to start the GUI.
 
 # Usage
 Once you have plugged a MegaWiFi cartridge into a MegaWiFi Programmer, you can use mdma. The command line application invocation must be as follows:
@@ -17,6 +24,7 @@ The options (option1 ~ optionN) can be any combination of the ones listed below.
 
 | Option | Argument type | Description |
 |---|---|---|
+| --qt-gui | -Q | N/A | Use the Qt GUI (if supported). |
 | --flash, -f | R - File | Programs the contents of a file to the cartridge flash chip. |
 | --read, -r | R - File | Read the flash chip, storing contents on a file. |
 | --erase, -e | N/A | Erase entire flash chip. |
@@ -48,6 +56,7 @@ The --pushbutton switch returns pushbutton status on the program exit code (so i
 E.g. if the button is pressed, and keeps being pressed when the program evaluates the --pushbutton function, the returned code will be 0x03 (pushbutton event + button pressed). If immediately called before the button is released, returned code will be 0x01 (no event + button pressed). If the button is released and then the program is called again, returned code will be 0x02 (pushbutton event + no button pressed).
 
 Some more examples of the command invocation and its arguments are:
+* `$ mdma -Q → Starts the QT GUI.
 * `$ mdma -ef rom_file` → Erases entire cartridge and flashes rom_file.
 * `$ mdma --erase -f rom_file:0x100000` → Erases entire cartridge and flashes contents of rom_file, starting at address 0x100000.
 * `$ mdma -s 0x100000` → Erases flash sector containing 0x100000 address.

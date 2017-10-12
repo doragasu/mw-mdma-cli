@@ -110,9 +110,9 @@ int UsbInit(void);
 /// Ends USB session with device
 void UsbClose(void);
 
-u16 MDMA_manId_get();
+u16 MDMA_manId_get(uint16_t *manId);
 
-u16 MDMA_devId_get();
+u16 MDMA_devId_get(uint16_t devId[3]);
 
 u16 MDMA_read( u16 wLen, int addr, u16 * data );
 

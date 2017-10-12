@@ -28,6 +28,7 @@
 //=============================================================================
 
 const struct option opt[] = {
+        {"qt-gui",      no_argument,        NULL,   'Q'},
         {"flash",       required_argument,  NULL,   'f'},
         {"read",        required_argument,  NULL,   'r'},
         {"erase",       no_argument,        NULL,   'e'},
@@ -48,6 +49,7 @@ const struct option opt[] = {
 };
 
 const char *description[] = {
+	"Start QT GUI",
 	"Flash rom file",
 	"Read ROM/Flash to file",
 	"Erase Flash",
@@ -71,7 +73,7 @@ const char *description[] = {
 //=============================================================================
 
 void PrintVersion(char *prgName) {
-	printf("%s version %d.%d, Manveru & doragasu 2015.\n", prgName,
+	printf("%s version %d.%d, Manveru & doragasu 2015-2017.\n", prgName,
 			VERSION_MAJOR, VERSION_MINOR);
 }
 
@@ -126,29 +128,14 @@ int main( int argc, char **argv )
 	uint32_t eraseAddr = 0;
 	/// Length for memory erase operations
 	uint32_t eraseLen = 0;
+	// Manufacturer and device ids
+	uint16_t ids[3];
+	// Use QT GUI flag
+	uint8_t useQt = FALSE;
 
 	// Just for loop iteration
 	int i;
 
-#ifdef QT
-	// If called with no arguments, use QT interface
-	if (argc <= 1) {
-		QApplication app (argc, argv);
-
-		// Try initialising USB device
-		if (UsbInit() < 0) {
-			QMessageBox::critical(NULL, "MDMA ERROR",
-					"Could not find MDMA programmer!\n"
-					"Please make sure MDMA programmer is\n"
-					"plugged and drivers/permissions are OK.");
-//			return -1;
-		}
-	
-		FlashDialog dlg;
-		dlg.show();
-		return app.exec();
-	}
-#endif
 
 	// Set all flags to FALSE
 	f.all = 0;
@@ -160,11 +147,15 @@ int main( int argc, char **argv )
         /// Character returned by getopt_long()
         int c;
 
-        while ((c = getopt_long(argc, argv, "f:r:es:A:aVipg:w:bdRvh", opt, &opIdx)) != -1)
+        while ((c = getopt_long(argc, argv, "Qf:r:es:A:aVipg:w:bdRvh", opt, &opIdx)) != -1)
         {
 			// Parse command-line options
             switch (c)
             {
+				case 'Q': // Use QT GUI
+					useQt = TRUE;
+					break;
+
                 case 'f': // Write flash
 					fWr.file = optarg;
 					if ((errCode = ParseMemArgument(&fWr))) {
@@ -261,6 +252,29 @@ int main( int argc, char **argv )
 		PrintHelp(argv[0]);
 		return 0;
 }
+
+	// Try launching QT GUI if requested
+	if (useQt) {
+#ifdef QT
+		QApplication app (argc, argv);
+
+		// Try initialising USB device
+		if (UsbInit() < 0) {
+			QMessageBox::critical(NULL, "MDMA ERROR",
+					"Could not find MDMA programmer!\n"
+					"Please make sure MDMA programmer is\n"
+					"plugged and drivers/permissions are OK.");
+			return -1;
+		}
+	
+		FlashDialog dlg;
+		dlg.show();
+		return app.exec();
+#else
+		PrintErr("Requested QT GUI, but MDMA has not been compiled with QT!\n");
+		return -1;
+#endif
+	}
 
 	if (optind < argc) {
 		PrintErr("Unsupported parameter:");
@@ -363,8 +377,10 @@ int main( int argc, char **argv )
 
 	// GET IDs	
 	if (f.flashId) {
-		MDMA_manId_get();
-		MDMA_devId_get();
+		MDMA_manId_get(ids);
+		printf("Manufacturer ID: 0x%04X\n", ids[0]);
+		MDMA_devId_get(ids);
+		printf("Device IDs: 0x%04X:%04X:%04X\n", ids[0], ids[1], ids[2]);
 	}
 	// Erase
 	if (f.erase) {
@@ -372,7 +388,7 @@ int main( int argc, char **argv )
 		fflush(stdout);
 		// It looks like text doesn't appear until MDMA_cart_erase()
 		// completes, so flush output to force it.
-		if (MDMA_cart_erase() < 0) {
+		if (MDMA_cart_erase()) {
 			printf("ERROR!\n");
 			return 1;
 		}
@@ -426,7 +442,7 @@ int main( int argc, char **argv )
 		// Write file
 		if (fRd.file) {
 			// Do byte swaps
-			for (i = 0; i < (int)fRd.len; i++) ByteSwapWord(read_buffer[i]);
+		   	for (i = 0; i < (int)fRd.len; i++) ByteSwapWord(read_buffer[i]);
         	FILE *dump = fopen(fRd.file, "wb");
 			if (!dump) {
 				perror(fRd.file);
@@ -443,7 +459,7 @@ int main( int argc, char **argv )
 		u16 retVal;
 		u8 butStat;
 		retVal = MDMA_button_get(&butStat);
-		if (retVal < 0) {
+		if (retVal) {
 			errCode = 1;
 		} else {
 			PrintVerb("Button status: 0x%02X.\n", butStat);
@@ -469,19 +485,6 @@ int main( int argc, char **argv )
 				PrintErr("Error while uploading WiFi firmware!\n");
 				errCode = 1;
 			}
-//			Test code, remove!
-//			while(1) {
-//				EpReset();
-//				EpProgStart();
-//				DelayMs(500);
-//				EpRun();
-//				DelayMs(500);
-//				EpReset();
-//				EpBootloader();
-//				DelayMs(500);
-//				EpRun();
-//				DelayMs(500);
-//			}
 		}
 	}
 

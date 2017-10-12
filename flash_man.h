@@ -4,6 +4,9 @@
 #include <QObject>
 #include <stdint.h>
 
+/// Chip length in bytes
+#define FM_CHIP_LENGTH	0x400000
+
 typedef enum {
 	FLASHMAN_IDLE = 0,
 	FLASHMAN_ERASE,
@@ -24,9 +27,11 @@ public:
 
 	int FullErase(void);
 
-	int Verify(uint16_t *readBuf, uint16_t *writeBuf, uint32_t len);
-
 	void BufFree(uint16_t *buf);
+
+	uint16_t ManIdGet(uint16_t *manId);
+
+	uint16_t DevIdGet(uint16_t devIds[3]);
 
 signals:
 	void RangeChanged(int min, int max);

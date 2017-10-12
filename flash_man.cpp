@@ -33,7 +33,8 @@ uint16_t *FlashMan::Program(const char filename[], bool autoErase,
 
 	// If requested, perform auto-erase
 	if (autoErase) {
-		emit StatusChanged("Auto Erasing...");
+		emit StatusChanged("Auto erasing");
+		DelayMs(1);
 		if (MDMA_range_erase(*start, *len)) {
 			free(writeBuf);
 			return NULL;
@@ -57,7 +58,7 @@ uint16_t *FlashMan::Program(const char filename[], bool autoErase,
 		emit ValueChanged(i);
 	}
 	emit ValueChanged(i);
-	emit StatusChanged("Done");
+	emit StatusChanged("Done!");
 	return writeBuf;
 }
 
@@ -93,18 +94,26 @@ uint16_t *FlashMan::Read(uint32_t start, uint32_t len) {
 }
 
 int FlashMan::RangeErase(uint32_t start, uint32_t len) {
+	if (MDMA_range_erase(start, len)) return -1;
+
 	return 0;
 }
 
 int FlashMan::FullErase(void) {
-	return 0;
-}
+	if (MDMA_cart_erase()) return -1;
 
-int FlashMan::Verify(uint16_t *readBuf, uint16_t *writeBuf, uint32_t len) {
 	return 0;
 }
 
 void FlashMan::BufFree(uint16_t *buf) {
 	free(buf);
+}
+
+uint16_t FlashMan::ManIdGet(uint16_t *manId) {
+	return MDMA_manId_get(manId);
+}
+
+uint16_t FlashMan::DevIdGet(uint16_t devIds[3]) {
+	return MDMA_devId_get(devIds);
 }
 

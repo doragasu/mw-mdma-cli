@@ -93,7 +93,7 @@ void UsbClose(void) {
 //-----------------------------------------------------------------------------
 // MDMA_MANID_GET
 //-----------------------------------------------------------------------------
-u16 MDMA_manId_get()
+u16 MDMA_manId_get(uint16_t *manId)
 {
     Command command_out = { { MDMA_MANID_GET } };
     Command command_in; // CMD byte + MANID word.
@@ -108,10 +108,8 @@ u16 MDMA_manId_get()
 
     // Checks read info
     if( command_in.frame.cmd == MDMA_OK ) {
-        printf( "Command field byte = 0x%.2X (MDMA_OK) \n", command_in.frame.cmd );
-
         u16 * code = ( u16 * ) &command_in.bytes[1];
-        printf( "MANID = 0x%.4X \n", *code );
+		*manId = *code;
     }
     else
         printf( "Command field byte = 0x%.2X (MDMA_ERR) \n", command_in.frame.cmd );
@@ -123,7 +121,7 @@ u16 MDMA_manId_get()
 //-----------------------------------------------------------------------------
 // MDMA_DEVID_GET
 //-----------------------------------------------------------------------------
-u16 MDMA_devId_get()
+u16 MDMA_devId_get(uint16_t devId[3])
 {
     Command command_out = { { MDMA_DEVID_GET } };
     Command command_in; // CMD byte + DEVID 3 words.
@@ -139,16 +137,10 @@ u16 MDMA_devId_get()
 
     // Checks read info
     if( command_in.frame.cmd == MDMA_OK ) {
-        printf( "Command field byte = 0x%.2X (MDMA_OK) \n", command_in.frame.cmd );
-
         u16 * code = ( u16 * ) &command_in.bytes[1];
-        printf( "DEVID code 1 = 0x%.4X\n", *code );
-
-        code = ( u16 * ) &command_in.bytes[3];
-        printf( "DEVID code 2 = 0x%.4X\n", *code );
-
-        code = ( u16 * ) &command_in.bytes[5];
-        printf( "DEVID code 3 = 0x%.4X\n", *code );
+		devId[0] = code[0];
+		devId[1] = code[1];
+		devId[2] = code[2];
     }
     else
         printf( "Command field byte = 0x%.2X (MDMA_ERR) \n", command_in.frame.cmd );

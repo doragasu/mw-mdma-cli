@@ -1,0 +1,42 @@
+# This Makefile builds mdma without QT support. If you prefer building with
+# the QT GUI support, run qmake and use the generated makefile instead.
+
+TARGET  = mdma
+CFLAGS ?= -O2 -Wall
+LFLAGS  = -lusb-1.0
+CC     ?= gcc
+CXX    ?= g++
+OBJDIR = obj
+
+#SRCS = $(wildcard *.c)
+CXXSRCS = main.cpp
+CSRCS = commands.c esp-prog.c mdma.c progbar.c
+OBJECTS = $(patsubst %.c,$(OBJDIR)/%.o,$(CSRCS))
+OBJECTS += $(patsubst %.cpp,$(OBJDIR)/%.o,$(CXXSRCS))
+
+all: $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(PREFIX)$(CC) -o $(TARGET) $(OBJECTS) $(LFLAGS)
+
+$(OBJDIR)/%.o: %.c | $(OBJDIR)
+	$(PREFIX)$(CC) -c -MMD -MP $(CFLAGS) $< -o $@
+
+$(OBJDIR)/%.o: %.cpp | $(OBJDIR)
+	$(PREFIX)$(CXX) -c -MMD -MP $(CFLAGS) $< -o $@
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+.PHONY: clean
+clean:
+	@rm -rf $(OBJDIR)
+
+.PHONY: mrproper
+mrproper: | clean
+	@rm -f $(TARGET)
+
+# Include auto-generated dependencies
+-include $(CSRCS:%.c=$(OBJDIR)/%.d)
+-include $(CXXSRCS:%.cpp=$(OBJDIR)/%.d)
+
