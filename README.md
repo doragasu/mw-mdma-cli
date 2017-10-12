@@ -1,5 +1,5 @@
 # mw-mdma-cli
-MegaWiFi MegaDrive Memory Administration(MDMA) command line interface. This program allows to read and write ROMs from/to MegaWiFi cartridges, using a MegaWiFi programmer. It also allows to upload firmware blobs to the in-cart ESP8266 WiFi module. Starting with version 0.4, the program can also be built with a nice Qt5 GUI.
+MegaWiFi MegaDrive Memory Administration(MDMA) command line interface. This program allows to read and write ROMs from/to MegaWiFi cartridges, using a MegaWiFi programmer. It also allows to upload firmware blobs to the in-cart ESP8266 WiFi module. Starting with version 0.4, the program can also be built with a nice Qt5 GUI. The GUI does not currently support the bootloader and WiFI related options, but other than that is completely usable.
 
 # Building
 For the basic CLI version, you just need to install `libusb-1.0` development packages and the standard development tools. then cd to the path with the sources and call
@@ -29,6 +29,8 @@ The options (option1 ~ optionN) can be any combination of the ones listed below.
 | --read, -r | R - File | Read the flash chip, storing contents on a file. |
 | --erase, -e | N/A | Erase entire flash chip. |
 | --sect-erase, -s | R - Address | Erase flash sector corresponding to address argument. |
+| --range-erase | -A | R - File | Erase flash memory range. |
+| --auto-erase | -a | N/A | Auto-erase (use it with flash command). |
 | --verify, -V | N/A | Verify written file after a flash operation. |
 | --flash-id, -i | N/A | Print information about the flash chip installed on the cart. |
 | --gpio-ctrl, -g | R - Pin data | Manually control GPIO port pins of the microcontroller. |
