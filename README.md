@@ -58,7 +58,7 @@ The --pushbutton switch returns pushbutton status on the program exit code (so i
 E.g. if the button is pressed, and keeps being pressed when the program evaluates the --pushbutton function, the returned code will be 0x03 (pushbutton event + button pressed). If immediately called before the button is released, returned code will be 0x01 (no event + button pressed). If the button is released and then the program is called again, returned code will be 0x02 (pushbutton event + no button pressed).
 
 Some more examples of the command invocation and its arguments are:
-* `$ mdma -Q → Starts the QT GUI.
+* `$ mdma -Q` → Starts the QT GUI.
 * `$ mdma -ef rom_file` → Erases entire cartridge and flashes rom_file.
 * `$ mdma --erase -f rom_file:0x100000` → Erases entire cartridge and flashes contents of rom_file, starting at address 0x100000.
 * `$ mdma -s 0x100000` → Erases flash sector containing 0x100000 address.
