@@ -1,3 +1,14 @@
+/************************************************************************//**
+ * \file
+ *
+ * \brief Flash manager dialog class implementation.
+ *
+ * Uses a dialog with a QTabWidget. Each tab is implemented in a separate
+ * class.
+ *
+ * \author doragasu
+ * \date   2017
+ ****************************************************************************/
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QFileDialog>
@@ -10,11 +21,19 @@
 #include "mdma.h"
 
 
+/********************************************************************//**
+ * Constructor
+ *
+ * \param[in] pointer to the owner of this class
+ ************************************************************************/
 FlashInfoTab::FlashInfoTab(FlashDialog *dlg) {
 	this->dlg = dlg;
 	InitUI();
 }
 
+/********************************************************************//**
+ * Initialize the tab interface
+ ************************************************************************/
 void FlashInfoTab::InitUI(void) {
 	QLabel *mdmaVerCaption = new QLabel("MDMA Version:");
 	QLabel *mdmaVer = new QLabel(QString::asprintf("%d.%d", VERSION_MAJOR,
@@ -52,6 +71,12 @@ void FlashInfoTab::InitUI(void) {
 	setLayout(mainLayout);
 }
 
+/********************************************************************//**
+ * This slot shall be run when the tab of the owner class changes. If
+ * selected tab is the INFO tab, updates the programmer information
+ *
+ * \param[in] Selected tab index.
+ ************************************************************************/
 void FlashInfoTab::TabChange(int index) {
 	uint16_t err;
 	uint16_t manId;
@@ -72,12 +97,20 @@ void FlashInfoTab::TabChange(int index) {
 	}
 }
 
+/********************************************************************//**
+ * Constructor
+ *
+ * \param[in] pointer to the owner of this class
+ ************************************************************************/
 FlashEraseTab::FlashEraseTab(FlashDialog *dlg) {
 	this->dlg = dlg;
 
 	InitUI();
 }
 
+/********************************************************************//**
+ * Initialize the tab interface
+ ************************************************************************/
 void FlashEraseTab::InitUI(void) {
 	// Create widgets
 	fullCb = new QCheckBox("Full erase");
@@ -118,11 +151,20 @@ void FlashEraseTab::InitUI(void) {
 	setLayout(mainLayout);
 }
 
+/********************************************************************//**
+ * Hides the erase memory range input, depending on the check status of
+ * the fullCb checkbox.
+ *
+ * \param[in] state Checked state of the fullCb checkbox.
+ ************************************************************************/
 void FlashEraseTab::ToggleFull(int state) {
 	if (Qt::Checked == state) rangeFrame->hide();
 	else rangeFrame->show();
 }
 
+/********************************************************************//**
+ * Erases flash as specified in dialog data.
+ ************************************************************************/
 void FlashEraseTab::Erase(void) {
 	int start, len;
 	int status;
@@ -156,11 +198,19 @@ void FlashEraseTab::Erase(void) {
 }
 
 
+/********************************************************************//**
+ * Constructor
+ *
+ * \param[in] pointer to the owner of this class
+ ************************************************************************/
 FlashReadTab::FlashReadTab(FlashDialog *dlg) {
 	this->dlg = dlg;
 	InitUI();
 }
 
+/********************************************************************//**
+ * Initialize the tab interface
+ ************************************************************************/
 void FlashReadTab::InitUI(void) {
 	// Create widgets
 	QLabel *romLab = new QLabel("Read from cart to ROM:");	
@@ -204,6 +254,9 @@ void FlashReadTab::InitUI(void) {
 	setLayout(mainLayout);
 }
 
+/********************************************************************//**
+ * Opens a file dialog, for the user to select the file to write to.
+ ************************************************************************/
 void FlashReadTab::ShowFileDialog(void) {
 	QString fileName;
 
@@ -212,6 +265,9 @@ void FlashReadTab::ShowFileDialog(void) {
 	if (!fileName.isEmpty()) fileLe->setText(fileName);
 }
 
+/********************************************************************//**
+ * Reads a segment of the flash chip, depending on dialog data
+ ************************************************************************/
 void FlashReadTab::Read(void) {
 	uint16_t *rdBuf = NULL;
 	int start, len;
@@ -269,11 +325,19 @@ void FlashReadTab::Read(void) {
 	disconnect(this, 0, 0, 0);
 }
 
+/********************************************************************//**
+ * Constructor
+ *
+ * \param[in] pointer to the owner of this class
+ ************************************************************************/
 FlashWriteTab::FlashWriteTab(FlashDialog *dlg) {
 	this->dlg = dlg;
 	InitUI();
 }
 
+/********************************************************************//**
+ * Initialize the tab interface
+ ************************************************************************/
 void FlashWriteTab::InitUI(void) {
 	// Create widgets
 	QLabel *romLab = new QLabel("Write to cart from ROM:");	
@@ -310,6 +374,9 @@ void FlashWriteTab::InitUI(void) {
 	setLayout(mainLayout);
 }
 
+/********************************************************************//**
+ * Opens the file dialog for the user to select the file to program.
+ ************************************************************************/
 void FlashWriteTab::ShowFileDialog(void) {
 	QString fileName;
 
@@ -318,6 +385,9 @@ void FlashWriteTab::ShowFileDialog(void) {
 	if (!fileName.isEmpty()) fileLe->setText(fileName);
 }
 
+/********************************************************************//**
+ * Programs a file to the flash chip, depending on dialog input.
+ ************************************************************************/
 void FlashWriteTab::Flash(void) {
 	uint16_t *wrBuf = NULL;
 	uint16_t *rdBuf = NULL;
@@ -388,10 +458,16 @@ void FlashWriteTab::Flash(void) {
 	disconnect(this, 0, 0, 0);
 }
 
+/********************************************************************//**
+ * Default constructor.
+ ************************************************************************/
 FlashDialog::FlashDialog(void) {
 	InitUI();
 }
 
+/********************************************************************//**
+ * Initialize the dialog with the tabs.
+ ************************************************************************/
 void FlashDialog::InitUI(void) {
 	tabs = new QTabWidget;
 	tabs->addTab(new FlashWriteTab(this), tr("WRITE"));

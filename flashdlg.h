@@ -1,10 +1,17 @@
 /************************************************************************//**
- * Flash manager dialog class implementation.
+ * \file
+ *
+ * \brief Flash manager dialog class implementation.
+ *
+ * \defgroup flashdlg flashdlg
+ * \{
+ * \brief Flash manager dialog class implementation.
  *
  * Uses a dialog with a QTabWidget. Each tab is implemented in a separate
  * class.
  *
  * \author doragasu
+ * \date   2017
  ****************************************************************************/
 
 #ifndef _FLASHDLG_H_
@@ -34,7 +41,9 @@ public:
 	/// Pointer to exit button
 	QPushButton *btnQuit;
 
-	/// Default constructor
+	/********************************************************************//**
+	 * Default constructor.
+	 ************************************************************************/
 	FlashDialog(void);
 
 private:
@@ -109,15 +118,21 @@ public slots:
 	/********************************************************************//**
 	 * Hides the erase memory range input, depending on the check status of
 	 * the fullCb checkbox.
+	 *
+	 * \param[in] state Checked state of the fullCb checkbox.
 	 ************************************************************************/
 	void ToggleFull(int state);
 
 private:
 	/// Parent dialog
 	FlashDialog *dlg;
+	/// Start of the erase range
 	QLineEdit *startLe;
+	/// Length of the erase range
 	QLineEdit *lengthLe;
+	/// Full erase checkbox
 	QCheckBox *fullCb;
+	/// Widget holding the frame range controls
 	QWidget *rangeFrame;
 
 	/********************************************************************//**
@@ -222,4 +237,6 @@ private:
 };
 
 #endif /*_FLASHDLG_H_*/
+
+/** \} */
 
