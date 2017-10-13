@@ -50,12 +50,19 @@ void FlashInfoTab::InitUI(void) {
 	devId->setFrameStyle(QFrame::Panel | QFrame::Sunken);
 	QLabel *about = new QLabel("MegaDrive Memory Administration,\n"
 			"by Migue and doragasu, 2017");
+	QPushButton *bootBtn = new QPushButton("Bootloader\nmode");
 
 	// Connect signals and slots
 	connect(dlg->tabs, SIGNAL(currentChanged(int)), this,
 			SLOT(TabChange(int)));
+	connect(bootBtn, SIGNAL(clicked()), this, SLOT(DfuEnter()));
 
 	// Set layout
+	QHBoxLayout *aboutLayout = new QHBoxLayout;
+	aboutLayout->addWidget(about);
+	aboutLayout->addStretch(1);
+	aboutLayout->addWidget(bootBtn);
+
 	QVBoxLayout *mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(mdmaVerCaption);
 	mainLayout->addWidget(mdmaVer);
@@ -65,10 +72,22 @@ void FlashInfoTab::InitUI(void) {
 	mainLayout->addWidget(manId);
 	mainLayout->addWidget(devIdCaption);
 	mainLayout->addWidget(devId);
-	mainLayout->addWidget(about);
+	mainLayout->addLayout(aboutLayout);
 	mainLayout->setAlignment(Qt::AlignTop);
 
 	setLayout(mainLayout);
+}
+
+void FlashInfoTab::DfuEnter(void) {
+	if (QMessageBox::warning(this, "Warning", "Programmer will enter DFU "
+			"bootloader mode, and then MDMA will close. Once in bootloader "
+			"mode, use a DFU programmer utility such as Atmel Flip to update "
+			"the MDMA programmer firmware.\n\nProceed?", QMessageBox::Ok |
+			QMessageBox::Cancel) == QMessageBox::Ok) {
+		FlashMan fm;
+		fm.DfuBootloader();
+		dlg->close();
+	}
 }
 
 /********************************************************************//**
@@ -84,7 +103,7 @@ void FlashInfoTab::TabChange(int index) {
 	FlashMan fm;
 
 	// If tab is the info tab, update fields
-	if (index != 3) return;
+	if (index != 4) return;
 	
 	err = fm.ManIdGet(&manId);
 	err |= fm.DevIdGet(devId);
@@ -473,6 +492,7 @@ void FlashDialog::InitUI(void) {
 	tabs->addTab(new FlashWriteTab(this), tr("WRITE"));
 	tabs->addTab(new FlashReadTab(this),  tr("READ"));
 	tabs->addTab(new FlashEraseTab(this), tr("ERASE"));
+	tabs->addTab(new FlashWifiTab(this),  tr("WIFI"));
 	tabs->addTab(new FlashInfoTab(this),  tr("INFO"));
 
 	statusLab = new QLabel("Ready!");
@@ -497,5 +517,75 @@ void FlashDialog::InitUI(void) {
 
 	setGeometry(0, 0, 350, 300);	
 	setWindowTitle("MegaDrive Memory Administration");
+}
+
+/********************************************************************//**
+ * Constructor
+ *
+ * \param[in] pointer to the owner of this class
+ ************************************************************************/
+FlashWifiTab::FlashWifiTab(FlashDialog *dlg) {
+	this->dlg = dlg;
+	InitUI();
+}
+
+/********************************************************************//**
+ * Initialize the tab interface
+ ************************************************************************/
+void FlashWifiTab::InitUI(void) {
+	// Create widgets
+	QLabel *romLab = new QLabel("WiFi module firmware blob:");	
+	fileLe = new QLineEdit;
+	QPushButton *fOpenBtn = new QPushButton("...");
+	fOpenBtn->setFixedWidth(30);
+	QLabel *addrLb = new QLabel("Flash to address: ");
+	addrLe = new QLineEdit("0x000000");
+	QPushButton *flashBtn = new QPushButton("Flash!");
+
+	// Connect signals to slots
+	connect(fOpenBtn, SIGNAL(clicked()), this, SLOT(ShowFileDialog()));
+	connect(flashBtn, SIGNAL(clicked()), this, SLOT(UploadFirmware()));
+
+	// Configure layout
+	QHBoxLayout *fileLayout = new QHBoxLayout;
+	fileLayout->addWidget(fileLe);
+	fileLayout->addWidget(fOpenBtn);
+
+	QHBoxLayout *addrLayout = new QHBoxLayout;
+	addrLayout->addWidget(addrLb);
+	addrLayout->addWidget(addrLe);
+
+	QHBoxLayout *statLayout = new QHBoxLayout;
+	statLayout->addWidget(flashBtn);
+	statLayout->setAlignment(Qt::AlignRight);
+
+	QVBoxLayout *mainLayout = new QVBoxLayout;
+	mainLayout->addWidget(romLab);
+	mainLayout->addLayout(fileLayout);
+	mainLayout->addLayout(addrLayout);
+	mainLayout->addStretch(1);
+	mainLayout->addLayout(statLayout);
+
+	setLayout(mainLayout);
+}
+
+/********************************************************************//**
+ * Opens the file dialog for the user to select the file to program.
+ ************************************************************************/
+void FlashWifiTab::ShowFileDialog(void) {
+	QString fileName;
+
+	fileName = QFileDialog::getOpenFileName(this, tr("Open WiFi firmware file"),
+			NULL, tr("WiFi Firmware Files (*.bin);;All files (*)"));
+	if (!fileName.isEmpty()) fileLe->setText(fileName);
+}
+
+/********************************************************************//**
+ * Upload firmware blob to the WiFi module.
+ ************************************************************************/
+void FlashWifiTab::UploadFirmware(void) {
+	// TODO, error for now
+	QMessageBox::warning(this, "Error", "Not yet implemented in QT interface, "
+			"use the CLI interface!");
 }
 

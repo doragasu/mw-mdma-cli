@@ -75,6 +75,8 @@ public slots:
 	 ************************************************************************/
 	void TabChange(int index);
 
+	void DfuEnter(void);
+
 private:
 	/// Parent dialog
 	FlashDialog *dlg;
@@ -234,6 +236,36 @@ private:
 	 * Do not allow using default constructor
 	 ************************************************************************/
 	FlashWriteTab(void);
+};
+
+class FlashWifiTab : public QWidget {
+	Q_OBJECT
+public:
+		FlashWifiTab(FlashDialog *dlg);
+
+public slots:
+	/********************************************************************//**
+	 * Upload firmware blob to the WiFi module.
+	 ************************************************************************/
+		void UploadFirmware(void);
+
+	/********************************************************************//**
+	 * Opens a file dialog, for the user to select the firmawre file to upload.
+	 ************************************************************************/
+	void ShowFileDialog(void);
+
+private:
+	/// Parent dialog
+	FlashDialog *dlg;
+	/// Firmware file to upload
+	QLineEdit *fileLe;
+	/// Address to upload the firmware to
+	QLineEdit *addrLe;
+
+	/********************************************************************//**
+	 * Initialize the tab interface
+	 ************************************************************************/
+	void InitUI(void);
 };
 
 #endif /*_FLASHDLG_H_*/

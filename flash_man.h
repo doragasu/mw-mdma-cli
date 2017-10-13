@@ -105,6 +105,13 @@ public:
 	 ************************************************************************/
 	uint16_t DevIdGet(uint16_t devIds[3]);
 
+	/********************************************************************//**
+	 * Enters DFU bootloader mode.
+	 *
+	 * \return 0 on success, non-zero on error.
+	 ************************************************************************/
+	uint16_t DfuBootloader(void);
+
 signals:
 	/********************************************************************//**
 	 * RangeChanged signal. It is emitted by the Flash() and Read() methods

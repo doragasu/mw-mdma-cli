@@ -189,3 +189,12 @@ uint16_t FlashMan::DevIdGet(uint16_t devIds[3]) {
 	return MDMA_devId_get(devIds);
 }
 
+/********************************************************************//**
+ * Enters DFU bootloader mode.
+ *
+ * \return 0 on success, non-zero on error.
+ ************************************************************************/
+uint16_t FlashMan::DfuBootloader(void) {
+	return MDMA_bootloader();
+}
+
