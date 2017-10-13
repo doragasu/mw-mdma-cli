@@ -7,6 +7,7 @@
 
 #include "flash_man.h"
 #include "util.h"
+#include "mdma.h"
 
 
 FlashInfoTab::FlashInfoTab(FlashDialog *dlg) {
@@ -16,7 +17,8 @@ FlashInfoTab::FlashInfoTab(FlashDialog *dlg) {
 
 void FlashInfoTab::InitUI(void) {
 	QLabel *mdmaVerCaption = new QLabel("MDMA Version:");
-	QLabel *mdmaVer = new QLabel("0.4");
+	QLabel *mdmaVer = new QLabel(QString::asprintf("%d.%d", VERSION_MAJOR,
+				VERSION_MINOR));
 	mdmaVer->setFrameStyle(QFrame::Panel | QFrame::Sunken);
 	QLabel *progVerCapion = new QLabel("Programmer version:");
 	progVer = new QLabel("N/A");
@@ -83,7 +85,7 @@ void FlashEraseTab::InitUI(void) {
 	QLabel *startLb = new QLabel("Start: ");
 	startLe = new QLineEdit("0x000000");
 	QLabel *lengthLb = new QLabel("Length: ");
-	lengthLe = new QLineEdit("0x400000");
+	lengthLe = new QLineEdit(QString::asprintf("0x%06X", FM_CHIP_LENGTH));
 	QPushButton *eraseBtn = new QPushButton("Erase!");
 	
 	// Connect signals and slots
@@ -169,7 +171,7 @@ void FlashReadTab::InitUI(void) {
 	QLabel *startLb = new QLabel("Start: ");
 	startLe = new QLineEdit("0x000000");
 	QLabel *lengthLb = new QLabel("Length: ");
-	lengthLe = new QLineEdit("0x400000");
+	lengthLe = new QLineEdit(QString::asprintf("0x%06X", FM_CHIP_LENGTH));
 	QPushButton *readBtn = new QPushButton("Read!");
 
 	// Connect signals to slots
@@ -409,9 +411,7 @@ void FlashDialog::InitUI(void) {
 	QHBoxLayout *statLayout = new QHBoxLayout;
 	statLayout->addWidget(statusLab);
 	statLayout->addWidget(progBar);
-//	btnLayout->addStretch(1);
 	statLayout->addWidget(btnQuit);
-//	btnLayout->setAlignment(Qt::AlignRight);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(tabs);

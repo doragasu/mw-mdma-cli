@@ -21,8 +21,9 @@
 //=============================================================================
 // VARS
 //=============================================================================
-static libusb_device_handle *megawifi_handle; // The megawifi device handle.
-static libusb_device *megawifi_dev;
+// The megawifi device handle.
+static libusb_device_handle *megawifi_handle = NULL;
+static libusb_device *megawifi_dev = NULL;
 
 
 //=============================================================================
