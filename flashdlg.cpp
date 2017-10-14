@@ -515,7 +515,8 @@ void FlashDialog::InitUI(void) {
 
 	setLayout(mainLayout);
 
-	setGeometry(0, 0, 350, 300);	
+//	setGeometry(0, 0, 350, 300);	
+	setFixedWidth(350);
 	setWindowTitle("MegaDrive Memory Administration");
 }
 
