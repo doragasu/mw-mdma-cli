@@ -1,8 +1,11 @@
 # mw-mdma-cli
 MegaWiFi MegaDrive Memory Administration(MDMA) command line interface. This program allows to read and write ROMs from/to MegaWiFi cartridges, using a MegaWiFi programmer. It also allows to upload firmware blobs to the in-cart ESP8266 WiFi module. Starting with version 0.4, the program can also be built with a nice Qt5 GUI. The GUI does not currently support the bootloader and WiFI related options, but other than that is completely usable.
 
+# Installing
+Pre-built versions for 32-bit and 64-bit Windows 7 (or later), can be found under `bin/release/windows` directory. Use the `mdma.exe` program under win32 or win64 depending on your Windows build (or just use the win32 version that should also work on 64-bit Windows). Note that you will also need to install the libusb drivers. An easy way to install them under Windows is using [Zadig](http://zadig.akeo.ie/).
+
 # Building
-For the basic CLI version, you just need to install `libusb-1.0` development packages and the standard development tools. then cd to the path with the sources and call
+Instead of installing the pre-built versions, you can build them. For the basic CLI version, you just need to install `libusb-1.0` development packages and the standard development tools. then cd to the path with the sources and call
 ```
 $ make -f Makefile-no-qt
 ```
@@ -15,8 +18,26 @@ $ make
 ```
 If the build process completes successfully, you should be able to run `mdma -Q` to start the GUI.
 
+This build process has been tested under Linux and Windows. It should also work on Macos, but I cannot test it. If you try building it under Macos, please contact me.
+
 # Usage
-Once you have plugged a MegaWiFi cartridge into a MegaWiFi Programmer, you can use mdma. The command line application invocation must be as follows:
+Once you have plugged a MegaWiFi cartridge into a MegaWiFi Programmer (and have installed the driver if using Windows), you can use mdma. You will have to choose between using the Command Line Interface (CLI) or the Graphical User Interface (GUI).
+
+## Using the MDMA GUI
+
+To start the MDMA GUI run the program with the `-Q` switch:
+```
+$ mdma -Q
+```
+This should start the GUI. If the programmer is plugged and drivers are OK, you should be greeted by a screen like this:
+
+Usage should be self-explanatory, just use the WRITE tab to burn ROMs to the cart, the READ tab to read ROMs from the cart, the ERASE tab to erase the cartridge contents, the WIFI tab to upload firmware blobs to the WiFi module (currently supported only in CLI mode), and the INFO tab to query cartridge andp rogrammer info, and to enter bootloader mode.
+
+If you will be using the MDMA GUI, it is recommended to create a shortcut invoking `mdma -Q`.
+
+## Using the MDMA CLI
+
+ The command line application invocation is be as follows:
 ```
 $ mdma [option1 [option1_arg]] […] [optionN [optionN_arg]]
 ```
@@ -58,8 +79,8 @@ The --pushbutton switch returns pushbutton status on the program exit code (so i
 E.g. if the button is pressed, and keeps being pressed when the program evaluates the --pushbutton function, the returned code will be 0x03 (pushbutton event + button pressed). If immediately called before the button is released, returned code will be 0x01 (no event + button pressed). If the button is released and then the program is called again, returned code will be 0x02 (pushbutton event + no button pressed).
 
 Some more examples of the command invocation and its arguments are:
-* `$ mdma -Q` → Starts the QT GUI.
 * `$ mdma -ef rom_file` → Erases entire cartridge and flashes rom_file.
+* `$ mdma -af rom_file` → Auto erases the cartridge range used by the rom_file, and flashes it to the cart.
 * `$ mdma --erase -f rom_file:0x100000` → Erases entire cartridge and flashes contents of rom_file, starting at address 0x100000.
 * `$ mdma -s 0x100000` → Erases flash sector containing 0x100000 address.
 * `$ mdma -Vf rom_file:0x100000:32768` → Flashes 32 KiB of rom_file to address 0x100000, and verifies the operation.
