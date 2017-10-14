@@ -1,24 +1,26 @@
 # mw-mdma-cli
-MegaWiFi MegaDrive Memory Administration(MDMA) command line interface. This program allows to read and write ROMs from/to MegaWiFi cartridges, using a MegaWiFi programmer. It also allows to upload firmware blobs to the in-cart ESP8266 WiFi module. Starting with version 0.4, the program can also be built with a nice Qt5 GUI. The GUI does not currently support the bootloader and WiFI related options, but other than that is completely usable.
+MegaWiFi MegaDrive Memory Administration (MDMA) interface. This program allows to read and write ROMs from/to MegaWiFi cartridges, using a MegaWiFi programmer. It also allows to upload firmware blobs to the in-cart ESP8266 WiFi module. Starting with version 0.4, the program can also be built with a nice Qt5 GUI (in addition to the command-line interface).
 
 # Installing
-Pre-built versions for 32-bit and 64-bit Windows 7 (or later), can be found under `bin/release/windows` directory. Use the `mdma.exe` program under win32 or win64 depending on your Windows build (or just use the win32 version that should also work on 64-bit Windows). Note that you will also need to install the libusb drivers. An easy way to install them under Windows is using [Zadig](http://zadig.akeo.ie/).
+Pre-built versions for 32-bit and 64-bit Windows 7 (or later), can be found under [bin/release/windows](bin/release/windows) directory. Extract the archive and use the `mdma.exe` program under `win32` or `win64` depending on your Windows build (or just use the `win32` version that should also work on 64-bit Windows). Note that in Windows you will also need to install the libusb drivers. An easy way to install them under Windows is using [Zadig](http://zadig.akeo.ie/).
 
 # Building
-Instead of installing the pre-built versions, you can build them. For the basic CLI version, you just need to install `libusb-1.0` development packages and the standard development tools. then cd to the path with the sources and call
+Instead of installing the pre-built versions, you can build them yourself. It is possible to build the binary without Qt support (with only the CLI mode available) or with Qt support (both CLI and GUI modes available). The build process has been tested for Linux and Windows. It should also work with macOS, but I have no way of testing it. If you give it a try under macOS, please drop me a line about the process.
+
+## Basic CLI
+For the basic CLI version, you just need to install `libusb-1.0` development packages and the standard development tools. then cd to the path with the sources and call:
 ```
 $ make -f Makefile-no-qt
 ```
 If everything goes OK, you should have the `mdma` binary sitting in the same directory.
 
-If you want to be able to launch the Qt GUI (in addition to being able to use the program in CLI mode), you will have to install the `qt5-base` development packages (I think it is called `qt5-default` in Ubuntu and derivatives). Then run:
+## Full-featured GUI + CLI
+If you want to be able to launch the Qt GUI (in addition to being able to use the program in CLI mode), you will have to install the `qt5-base` development packages (`qt5-default` in Ubuntu and derivatives). Then run:
 ```
 $ qt5-qmake
 $ make
 ```
 If the build process completes successfully, you should be able to run `mdma -Q` to start the GUI.
-
-This build process has been tested under Linux and Windows. It should also work on Macos, but I cannot test it. If you try building it under Macos, please contact me.
 
 # Usage
 Once you have plugged a MegaWiFi cartridge into a MegaWiFi Programmer (and have installed the driver if using Windows), you can use mdma. You will have to choose between using the Command Line Interface (CLI) or the Graphical User Interface (GUI).
@@ -31,13 +33,15 @@ $ mdma -Q
 ```
 This should start the GUI. If the programmer is plugged and drivers are OK, you should be greeted by a screen like this:
 
-Usage should be self-explanatory, just use the WRITE tab to burn ROMs to the cart, the READ tab to read ROMs from the cart, the ERASE tab to erase the cartridge contents, the WIFI tab to upload firmware blobs to the WiFi module (currently supported only in CLI mode), and the INFO tab to query cartridge andp rogrammer info, and to enter bootloader mode.
+![MDMA-GUI](img/mdma-gui.png)
 
-If you will be using the MDMA GUI, it is recommended to create a shortcut invoking `mdma -Q`.
+Usage should be self-explanatory, just use the `WRITE` tab to burn ROMs to the cart, the `READ` tab to read ROMs from the cart, the `ERASE` tab to erase the cartridge contents, the `WIFI` tab to upload firmware blobs to the WiFi module (currently supported only in CLI mode), and the `INFO` tab to query cartridge and programmer info, and to enter bootloader mode.
+
+If you will be frequently using the MDMA GUI, it is recommended to create a shortcut invoking `mdma -Q`.
 
 ## Using the MDMA CLI
 
- The command line application invocation is be as follows:
+ The command line application invocation is as follows:
 ```
 $ mdma [option1 [option1_arg]] […] [optionN [optionN_arg]]
 ```
