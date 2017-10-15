@@ -17,6 +17,12 @@
 #include "esp-prog.h"
 #include "mdma.h"
 
+#if (defined(__OS_WIN) && defined(QT_STATIC))
+// Windows static builds need to import Windows Integration plugin
+#include <QtPlugin>
+Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)
+#endif
+
 #ifdef QT
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMessageBox>
