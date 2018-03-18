@@ -148,6 +148,9 @@ int EpBlobFlash(char file[], uint32_t addr, Flags f) {
 	// TODO: Might be interesting allowing the user to configure these params
 	if (0xE9 == blobHdr->magic && 0 == addr) {
 		blobHdr->spiIf = EP_SPI_IF_QIO;
+//		blobHdr->spiIf = EP_SPI_IF_DIO;
+//		blobHdr->spiIf = EP_SPI_IF_DOUT;
+//		blobHdr->spiIf = EP_SPI_IF_QOUT;
 		blobHdr->flashParam = EP_FLASH_PARAM(EP_SPI_LEN_4M,
 				EP_SPI_SPEED_40M);
 	}
@@ -155,9 +158,12 @@ int EpBlobFlash(char file[], uint32_t addr, Flags f) {
 	// Enter bootloader
 	EpReset();
 	DelayMs(50);
+//	DelayMs(500);
 	EpBootloader();
-	DelayMs(5);
+//	DelayMs(5);
+	DelayMs(50);
 	EpRun();
+//	DelayMs(40);	// It looks like this delay is critical!
 	DelayMs(40);	// It looks like this delay is critical!
 
 	// Erase flash and prepare for data download
