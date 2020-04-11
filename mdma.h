@@ -9,7 +9,7 @@
 /// Maximum length of a memory range.
 #define MAX_MEM_RANGE	24
 #define VERSION_MAJOR	0x00
-#define VERSION_MINOR	0x04
+#define VERSION_MINOR	0x05
 
 /// Structure containing a memory image (file, address and length)
 typedef struct {
