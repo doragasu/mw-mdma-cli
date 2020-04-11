@@ -524,7 +524,7 @@ int main( int argc, char **argv )
 			errCode = 1;
 		}
 		else {
-			if (0 > EpBlobFlash(fWf.file, fWf.addr, f)) {
+			if (0 > EpBlobFlash(fWf.file, fWf.addr, &f)) {
 				PrintErr("Error while uploading WiFi firmware!\n");
 				errCode = 1;
 			}

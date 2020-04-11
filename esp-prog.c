@@ -24,16 +24,18 @@ static EpBuf buf;
 void EpInit(void) {
 }
 
-static uint32_t EpCsum(uint8_t *data, uint16_t len) {
+static uint32_t EpCsum(const char *data, uint16_t len) {
 	uint8_t csum = EP_CSUM_MAGIC;
 	uint16_t i;
 
-	for (i = 0; i < len; i++) csum ^= data[i];
+	for (i = 0; i < len; i++) {
+		csum ^= data[i];
+	}
 
 	return csum;
 }
 
-static int EpSendCmd(EpCmdOp cmd, uint8_t data[], uint16_t len, uint32_t csum) {
+static int EpSendCmd(EpCmdOp cmd, char data[], uint16_t len, uint32_t csum) {
 	int ret;
 	uint16_t i;
 
@@ -71,88 +73,105 @@ static int EpDownloadStart(size_t fLen, uint32_t addr) {
 	data[3] = addr;
 
 	// Send prepared command
-	return EpSendCmd(EP_OP_FLASH_DOWNLOAD_START, (uint8_t*)data, sizeof(data),
+	return EpSendCmd(EP_OP_FLASH_DOWNLOAD_START, (char*)data, sizeof(data),
 			0);
 	
 	return 0;
 }
 
-// TODO: This function is a mess and should be split
-int EpBlobFlash(char file[], uint32_t addr, Flags f) {
-	size_t fLen;
+EpBlobData *EpBlobLoad(const char *file_name, uint32_t addr, const Flags *f)
+{
+	struct stat st = {};
+	FILE *fi = NULL;
 	size_t totalLen;
-	uint16_t nSect;
 	uint16_t seq;
 	uint32_t readed;
 	uint32_t pos;
 	uint16_t toRead;
-	uint16_t csum;
-	size_t flashed;
-	struct stat st;
-	FILE *fi = NULL;
-	uint8_t *fBuf = NULL;
 	EpBlobHdr *blobHdr;
-	int retVal = 0;
-	uint32_t reboot;
-	// Address string, e.g.: 0x12345678
-	char addrStr[11];
-	unsigned int i;
+
+	EpBlobData *b = (EpBlobData*)calloc(1, sizeof(EpBlobData));
+	b->cols = f->cols;
+	b->addr = addr;
 
 	// Get file length
-	if (stat(file, &st)) {
-		perror(file);
-		return -1;
+	if (stat(file_name, &st)) {
+		perror(file_name);
+		goto err;
 	}
-	fLen = st.st_size;
+	b->len = st.st_size;
 	
 	// Allocate memory for each flash packet along with its packet header
 	// and read the file. Round length up to an EP_FLASH_SECT multiple
-	totalLen = (fLen + EP_FLASH_SECT_LEN - 1) & (~(EP_FLASH_SECT_LEN - 1));
-	nSect = totalLen / EP_FLASH_SECT_LEN;
-	fBuf = (uint8_t*) calloc(nSect, EP_FLASH_PKT_LEN);
-	if (!fBuf) {
+	totalLen = (b->len + EP_FLASH_SECT_LEN - 1) & (~(EP_FLASH_SECT_LEN - 1));
+	b->sect_total = totalLen / EP_FLASH_SECT_LEN;
+	b->data = (char*) calloc(b->sect_total, EP_FLASH_PKT_LEN);
+	if (!b->data) {
 		perror("Allocating RAM for firmware");
-			return -1;
+			goto err;
 	}
 
 	// Open and read file
-	if (!(fi = fopen(file, "r"))) {
-		perror(file);
-		return -1;
+	if (!(fi = fopen(file_name, "r"))) {
+		perror(file_name);
+		goto err;
 	}
-	for (pos = 0, seq = 0, readed = 0; readed < fLen; seq++,
+	for (pos = 0, seq = 0, readed = 0; readed < b->len; seq++,
 			readed += EP_FLASH_SECT_LEN) {
 		// Fill header (length, seq, 0, 0) for this packet
-		*((uint32_t*)(fBuf + pos)) = EP_FLASH_SECT_LEN;
+		*((uint32_t*)(b->data + pos)) = EP_FLASH_SECT_LEN;
 		pos += sizeof(uint32_t);
-		*((uint32_t*)(fBuf + pos)) = seq;
+		*((uint32_t*)(b->data + pos)) = seq;
 		pos += 3 * sizeof(uint32_t);
 		// Read a sector
-		toRead = MIN(EP_FLASH_SECT_LEN, fLen - readed);
-		if (fread(&fBuf[pos], 1, toRead, fi) != toRead) {
+		toRead = MIN(EP_FLASH_SECT_LEN, b->len - readed);
+		if (fread(&b->data[pos], 1, toRead, fi) != toRead) {
 			PrintErr("Reading firmware pos 0x%X:0x%X: ", readed, toRead);
 			perror(NULL);
 			fclose(fi);
-			retVal = -1;
-			goto blob_flash_free; 
+			goto err; 
 		}
 		pos += toRead;
 	}
 	fclose(fi);
+
 	// 0xFF pad the buffer
-	memset(fBuf + pos, 0xFF, nSect * EP_FLASH_PKT_LEN - pos);
+	memset(b->data + pos, 0xFF, b->sect_total * EP_FLASH_PKT_LEN - pos);
+
+	b->len = totalLen;
 
 	// Check if this is the first blob and correct flash parameters
 	// if requested by user
-	blobHdr = (EpBlobHdr*)(fBuf + EP_FLASH_PKT_HEAD_LEN);
-	if (0 == addr && 0xE9 == blobHdr->magic &&
-			f.flash_mode < ESP_FLASH_UNCHANGED) {
-		blobHdr->spiIf = f.flash_mode;
-		// TODO Allow also configuring these
-		blobHdr->flashParam = EP_FLASH_PARAM(EP_SPI_LEN_4M,
-				EP_SPI_SPEED_40M);
+	if (0 == addr && f->flash_mode < ESP_FLASH_UNCHANGED) {
+	blobHdr = (EpBlobHdr*)(b->data + EP_FLASH_PKT_HEAD_LEN);
+		if (0xE9 == blobHdr->magic) {
+			blobHdr->spiIf = f->flash_mode;
+			// TODO Allow also configuring these
+			blobHdr->flashParam = EP_FLASH_PARAM(EP_SPI_LEN_4M,
+					EP_SPI_SPEED_40M);
+		}
 	}
 	
+	return b;
+
+err:
+	EpBlobFree(b);
+
+	return NULL;
+}
+
+void EpBlobFree(EpBlobData *b)
+{
+	if (b) {
+		if (b->data) {
+			free(b->data);
+		}
+		free(b);
+	}
+}
+
+int EpSync(void)
+{
 	// Enter bootloader. Delays timing from esptool.py
 	EpReset();
 	DelayMs(100);
@@ -160,52 +179,82 @@ int EpBlobFlash(char file[], uint32_t addr, Flags f) {
 	DelayMs(50);
 	EpRun();
 
-	// Erase flash and prepare for data download
-	printf("Erasing WiFi module, 0x%08X bytes at 0x%08X... ",
-			(unsigned int) totalLen, addr); fflush(stdout);
 	// Sync WiFi chip
-	if (0 > EpProgSync()) {
-		PrintErr("Error: Could not sync ESP8266!\n");
-		retVal = -1;
-		goto blob_flash_free;
+	return EpProgSync();
+}
+
+int EpErase(EpBlobData *b)
+{
+	return EpDownloadStart(b->len, b->addr);
+}
+
+EpFlashStatus EpFlashNext(EpBlobData *b)
+{
+	uint16_t csum;
+	uint32_t flashed = b->sect * EP_FLASH_PKT_LEN;
+
+	// Calculate data checksum and send command with data and header
+	csum = EpCsum(b->data + flashed + EP_FLASH_PKT_HEAD_LEN, EP_FLASH_SECT_LEN);
+	if (0 > EpSendCmd(EP_OP_FLASH_DOWNLOAD_DATA, b->data + flashed,
+				EP_FLASH_PKT_LEN, csum)) {
+		PrintErr("Error flashing blob at 0x%X\n", flashed);
+		return EP_FLASH_ERR;
+	}
+	b->sect++;
+	return (b->sect < b->sect_total) ? EP_FLASH_REMAINING : EP_FLASH_DONE;
+}
+
+int EpFinish(uint32_t reboot)
+{
+	return EpSendCmd(EP_OP_FLASH_DOWNLOAD_FINISH, (char*)&reboot,
+			sizeof(uint32_t), 0);
+}
+
+// TODO: This function is a mess and should be split
+int EpBlobFlash(const char *file_name, uint32_t addr, const Flags *f) {
+	EpBlobData *b = NULL;
+
+	// Address string, e.g.: 0x12345678
+	char addrStr[12];
+	int err = -1;
+
+	b = EpBlobLoad(file_name, addr, f);
+	if (!b) {
+		goto err;
 	}
 
-	if (0 > EpDownloadStart(totalLen, addr)) {
+	// Erase flash and prepare for data download
+	printf("Erasing WiFi module, 0x%08X bytes at 0x%08X... ",
+			(unsigned int) b->len, addr); fflush(stdout);
+	err = EpSync();
+	if (err) {
+		PrintErr("Error: Could not sync ESP8266!\n");
+		goto err;
+	}
+	err = EpErase(b);
+	if (err) {
 		PrintErr("Error, Could not erase flash!\n");
-		retVal = -1;
-		goto blob_flash_free;
+		goto err;
 	}
 	printf("OK\n");
 
-	// Flash blob, one sector each time.
+	// Flash blob, one sector at a time.
 	// TODO: WARNING, might need to unlock DIO
-   	printf("Flashing WiFi firmware %s at 0x%06X...\n", file, addr);
-	for (flashed = 0, i = 0; flashed < (nSect * EP_FLASH_PKT_LEN);
-			flashed += EP_FLASH_PKT_LEN, i++) {
-		sprintf(addrStr, "0x%08X", i * EP_FLASH_SECT_LEN);
-		ProgBarDraw(i, nSect, f.cols, addrStr);
-		// Calculate data checksum and send command with data and header
-		csum = EpCsum(fBuf + flashed + EP_FLASH_PKT_HEAD_LEN,
-				EP_FLASH_SECT_LEN);
-		if (0 > EpSendCmd(EP_OP_FLASH_DOWNLOAD_DATA, fBuf + flashed,
-					EP_FLASH_PKT_LEN, csum)) {
-			PrintErr("Error flashing file %s at 0x%X\n", file,
-					(uint32_t)flashed);
-			retVal = -1;
-			goto blob_flash_end;
-		}
-	}
-	sprintf(addrStr, "0x%08X", i * EP_FLASH_SECT_LEN);
-	ProgBarDraw(i, nSect, f.cols, addrStr);
+   	printf("Flashing WiFi firmware %s at 0x%06X...\n", file_name, addr);
+	do {
+		sprintf(addrStr, "0x%08X", b->sect * EP_FLASH_SECT_LEN);
+		ProgBarDraw(b->sect, b->sect_total, b->cols, addrStr);
 
-blob_flash_end:
+	} while (EP_FLASH_REMAINING == EpFlashNext(b));
+	sprintf(addrStr, "0x%08X", b->sect * EP_FLASH_SECT_LEN);
+	ProgBarDraw(b->sect, b->sect_total, b->cols, addrStr);
+
 	// Send download finish command
-	reboot = TRUE;
-	EpSendCmd(EP_OP_FLASH_DOWNLOAD_FINISH, (uint8_t*)&reboot, sizeof(reboot),
-			0);
+	EpFinish(TRUE);
 
-blob_flash_free:
+err:
 	// Free memory and return
-	free(fBuf);
-	return retVal;
+	EpBlobFree(b);
+	return err;
 }
+

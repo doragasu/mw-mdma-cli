@@ -204,11 +204,33 @@ typedef struct {
 }EpSegHdr;
 /** \} */
 
+typedef struct {
+	char *data;
+	uint32_t addr;
+	uint32_t len;
+	int sect;
+	int sect_total;
+	int cols;
+} EpBlobData ;
+
+typedef enum {
+	EP_FLASH_ERR = -1,
+	EP_FLASH_DONE = 0,
+	EP_FLASH_REMAINING = 1
+} EpFlashStatus;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int EpBlobFlash(char file[], uint32_t addr, Flags f);
+int EpBlobFlash(const char *file_name, uint32_t addr, const Flags *f);
+
+EpBlobData *EpBlobLoad(const char *file_name, uint32_t addr, const Flags *f);
+void EpBlobFree(EpBlobData *b);
+int EpSync(void);
+int EpErase(EpBlobData *b);
+EpFlashStatus EpFlashNext(EpBlobData *b);
+int EpFinish(uint32_t reboot);
 
 #define EpReset()		MDMA_WiFiCtrl(MDMA_WIFI_CTRL_RST)
 
