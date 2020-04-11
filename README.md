@@ -2,7 +2,7 @@
 MegaWiFi MegaDrive Memory Administration (MDMA) interface. This program allows to read and write ROMs from/to MegaWiFi cartridges, using a MegaWiFi programmer. It also allows to upload firmware blobs to the in-cart ESP8266 WiFi module. Starting with version 0.4, the program can also be built with a nice Qt5 GUI (in addition to the command-line interface).
 
 # Installing
-Pre-built versions for 32-bit and 64-bit Windows 7 (or later), can be found under [bin/release/windows](bin/release/windows) directory. Extract the archive and use the `mdma.exe` program under `win32` or `win64` depending on your Windows build (or just use the `win32` version that should also work on 64-bit Windows). Note that in Windows you will also need to install the libusb drivers. An easy way to install them under Windows is using [Zadig](http://zadig.akeo.ie/).
+Pre-built versions for 64-bit Windows 7 (or later), can be found under [bin/release/windows](bin/release/windows) directory. Extract the archive and use the `mdma.exe` program. Note that in Windows you will also need to install the libusb drivers. An easy way to install them under Windows is using [Zadig](http://zadig.akeo.ie/).
 
 # Building
 Instead of installing the pre-built versions, you can build them yourself. It is possible to build the binary without Qt support (with only the CLI mode available) or with Qt support (both CLI and GUI modes available). The build process has been tested for Linux and Windows. It should also work with macOS, but I have no way of testing it. If you give it a try under macOS, please drop me a line about the process.
@@ -45,7 +45,7 @@ If you will be frequently using the MDMA GUI, it is recommended to create a shor
 ```
 $ mdma [option1 [option1_arg]] […] [optionN [optionN_arg]]
 ```
-The options (option1 ~ optionN) can be any combination of the ones listed below. Options must support short and long formats. Depending on the used option, and option argument (option_arg) must be supplied. Several options can be used on the same command, as long as the combination makes sense (e.g. it does make sense using the flash and verify options together, but using the help option with the flash option doesn't make too much sense).
+The options (option1 ~ optionN) can be any combination of the ones listed below. Options must support short and long formats. Depending on the used option, and option argument (option\_arg) must be supplied. Several options can be used on the same command, as long as the combination makes sense (e.g. it does make sense using the flash and verify options together, but using the help option with the flash option doesn't make too much sense).
 
 | Option | Argument type | Description |
 |---|---|---|
@@ -58,9 +58,10 @@ The options (option1 ~ optionN) can be any combination of the ones listed below.
 | --auto-erase, -a | N/A | Auto-erase (use it with flash command). |
 | --verify, -V | N/A | Verify written file after a flash operation. |
 | --flash-id, -i | N/A | Print information about the flash chip installed on the cart. |
+| --pushbutton, -p | N/A | Read programmer pushbutton status. |
 | --gpio-ctrl, -g | R - Pin data | Manually control GPIO port pins of the microcontroller. |
 | --wifi-flash, -w | R - File | Uploads a firmware blob to the cartridge WiFi module. |
-| --pushbutton, -p | N/A | Read programmer pushbutton status. |
+| --wifi-mode, -m | R - Mode | Set WiFi module flash chip mode (qio, qout, dio, dout). |
 | --bootloader, -b | N/A | Enters DFU bootloader mode, to update programmer firmware. |
 | --dry-run, -d | N/A | Performs a dry run (parses command line but does nothing). |
 | --version, -R | N/A | Print version information and exit. |
@@ -69,10 +70,10 @@ The options (option1 ~ optionN) can be any combination of the ones listed below.
 
 The Argument type column contains information about the parameters associated with every option. If the option takes no arguments, it is indicated by “N/A” string. If the option takes a required argument, the argument type is prefixed with “R” character. Supported argument types are File, Address and Pin Data:
 * File: Specifies a file name. Along with the file name, optional address and length fields can be added, separated by the colon (:) character, resulting in the following format:
-file_name[:address[:length]]
+file\_name[:address[:length]]
 * Address: Specifies an address related to the command (e.g. the address to which to flash a cartridge ROM or WiFi firmware blob).
 * Pin Data: Data related to the read/write operation of the port pins, with the format:
-pin_mask:read_write[:value]
+pin\_mask:read\_write[:value]
 
 When using Pin Data arguments, each of the 3 possible parameters takes 6 bytes: one for each 8-bit port on the chip from PA to PF. Each of the arguments corresponds to the row with the same name on table 3. The value parameter is only required when writing to any pin on the ports. It is recommended to specify each parameter using hexadecimal values (using the prefix '0x').
 
@@ -83,14 +84,15 @@ The --pushbutton switch returns pushbutton status on the program exit code (so i
 E.g. if the button is pressed, and keeps being pressed when the program evaluates the --pushbutton function, the returned code will be 0x03 (pushbutton event + button pressed). If immediately called before the button is released, returned code will be 0x01 (no event + button pressed). If the button is released and then the program is called again, returned code will be 0x02 (pushbutton event + no button pressed).
 
 Some more examples of the command invocation and its arguments are:
-* `$ mdma -ef rom_file` → Erases entire cartridge and flashes rom_file.
-* `$ mdma -af rom_file` → Auto erases the cartridge range used by the rom_file, and flashes it to the cart.
-* `$ mdma --erase -f rom_file:0x100000` → Erases entire cartridge and flashes contents of rom_file, starting at address 0x100000.
+* `$ mdma -ef rom_file` → Erases entire cartridge and flashes rom\_file.
+* `$ mdma -af rom_file` → Auto erases the cartridge range used by the rom\_file, and flashes it to the cart.
+* `$ mdma --erase -f rom_file:0x100000` → Erases entire cartridge and flashes contents of rom\_file, starting at address 0x100000.
 * `$ mdma -s 0x100000` → Erases flash sector containing 0x100000 address.
-* `$ mdma -Vf rom_file:0x100000:32768` → Flashes 32 KiB of rom_file to address 0x100000, and verifies the operation.
-* `$ mdma --read rom_file::1048576` → Reads 1 MiB of the cartridge flash, and writes it to rom_file. Note that if you want to specify length but do not want to specify address, you have to use two colon characters before length. This way, missing address argument is interpreted as 0.
+* `$ mdma -Vf rom_file:0x100000:32768` → Flashes 32 KiB of rom\_file to address 0x100000, and verifies the operation.
+* `$ mdma --read rom_file::1048576` → Reads 1 MiB of the cartridge flash, and writes it to rom\_file. Note that if you want to specify length but do not want to specify address, you have to use two colon characters before length. This way, missing address argument is interpreted as 0.
 * `$ mdma -g 0xFF00FFFF0000:0x110000000000:0x000012340000` → Reads data on port A, and writes 0x1234 on ports PC and PD.
-* `$ mdma -w wifi-firm:0x40000` → Uploads wifi-firm firmware blob to the WiFi module, at address 0x40000.
+* `$ mdma -w wifi-firm.bin:0x10000` → Uploads wifi-firm.bin firmware blob to the WiFi module, at address 0x10000.
+* `$ mdma -w bootloader.bin -m qio` → Uploads bootloader.bin firmware blob to the WiFi module at address 0, and sets SPI flash mode to QIO.
 
 # Authors
 This program has been written by Migue/Manveru and doragasu.
