@@ -9,6 +9,7 @@
  * \author doragasu
  * \date   2017
  ****************************************************************************/
+#include <QApplication>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QFileDialog>
@@ -19,6 +20,7 @@
 #include "flash_man.h"
 #include "util.h"
 #include "mdma.h"
+#include "esp-prog.h"
 
 
 /********************************************************************//**
@@ -414,7 +416,9 @@ void FlashWriteTab::Flash(void) {
 	uint32_t len = 0;
 	bool autoErase;
 
-	if (fileLe->text().isEmpty()) return;
+	if (fileLe->text().isEmpty()) {
+		return;
+	}
 	dlg->tabs->setDisabled(true);
 	dlg->btnQuit->setVisible(false);
 	dlg->progBar->setVisible(true);
@@ -539,7 +543,16 @@ void FlashWifiTab::InitUI(void) {
 	QPushButton *fOpenBtn = new QPushButton("...");
 	fOpenBtn->setFixedWidth(30);
 	QLabel *addrLb = new QLabel("Flash to address: ");
-	addrLe = new QLineEdit("0x000000");
+	addrLe = new QLineEdit("0x10000");
+	QLabel *spiTypeLb = new QLabel("SPI flash type: ");
+	spiTypeCombo = new QComboBox();
+	spiTypeCombo->insertItem(ESP_FLASH_QIO, "QIO");
+	spiTypeCombo->insertItem(ESP_FLASH_QOUT, "QOUT");
+	spiTypeCombo->insertItem(ESP_FLASH_DIO, "DIO");
+	spiTypeCombo->insertItem(ESP_FLASH_DOUT, "DOUT");
+	spiTypeCombo->insertItem(ESP_FLASH_UNCHANGED, "Do not change");
+	spiTypeCombo->setCurrentIndex(ESP_FLASH_UNCHANGED);
+
 	QPushButton *flashBtn = new QPushButton("Flash!");
 
 	// Connect signals to slots
@@ -555,6 +568,10 @@ void FlashWifiTab::InitUI(void) {
 	addrLayout->addWidget(addrLb);
 	addrLayout->addWidget(addrLe);
 
+	QHBoxLayout *spiTypeLayout = new QHBoxLayout;
+	spiTypeLayout->addWidget(spiTypeLb);
+	spiTypeLayout->addWidget(spiTypeCombo);
+
 	QHBoxLayout *statLayout = new QHBoxLayout;
 	statLayout->addWidget(flashBtn);
 	statLayout->setAlignment(Qt::AlignRight);
@@ -563,6 +580,7 @@ void FlashWifiTab::InitUI(void) {
 	mainLayout->addWidget(romLab);
 	mainLayout->addLayout(fileLayout);
 	mainLayout->addLayout(addrLayout);
+	mainLayout->addLayout(spiTypeLayout);
 	mainLayout->addStretch(1);
 	mainLayout->addLayout(statLayout);
 
@@ -584,8 +602,67 @@ void FlashWifiTab::ShowFileDialog(void) {
  * Upload firmware blob to the WiFi module.
  ************************************************************************/
 void FlashWifiTab::UploadFirmware(void) {
-	// TODO, error for now
-	QMessageBox::warning(this, "Error", "Not yet implemented in QT interface, "
-			"use the CLI interface!");
+	Flags f = {};
+	EpBlobData *b = NULL;
+	EpFlashStatus st;
+	int err;
+	uint32_t addr;
+	bool ok = false;
+
+	if (fileLe->text().isEmpty()) {
+		return;
+	}
+	addr = addrLe->text().toInt(&ok, 0);
+	if (!ok) {
+		QMessageBox::warning(this, "Wrong address", "Enter a valid address");
+		return;
+	}
+	f.flash_mode = (enum esp_flash_mode)spiTypeCombo->currentIndex();
+	b = EpBlobLoad(fileLe->text().toStdString().c_str(), addr, &f);
+	if (!b) {
+		QMessageBox::warning(this, "Flash failed", "Cannot open file");
+		return;
+	}
+	dlg->tabs->setDisabled(true);
+	dlg->btnQuit->setVisible(false);
+	dlg->progBar->setVisible(true);
+
+	dlg->statusLab->setText("Erasing...");
+	dlg->progBar->setRange(0, b->sect_total);
+	dlg->progBar->setValue(0);
+	dlg->repaint();
+
+	err = EpSync();
+	if (!err) {
+		err = EpErase(b);
+	}
+	if (err) {
+		QMessageBox::warning(this, "Cannot erase flash",
+				"Reconnect programmer, restart MDMA and try again");
+		goto out;
+	}
+
+	dlg->statusLab->setText("Program...");
+	do {
+		dlg->progBar->setValue(b->sect);
+		QApplication::processEvents();
+		st = EpFlashNext(b);
+	} while (EP_FLASH_REMAINING == st);
+	dlg->progBar->setValue(b->sect);
+	if (EP_FLASH_DONE != st) {
+		QMessageBox::warning(this, "Flash failed",
+				"Reconnect programmer, restart MDMA and try again");
+		goto out;
+	}
+
+	QApplication::processEvents();
+	EpFinish(TRUE);
+
+out:
+	EpBlobFree(b);
+	dlg->progBar->setVisible(false);
+	dlg->btnQuit->setVisible(true);
+	dlg->tabs->setDisabled(false);
+	dlg->statusLab->setText("Done!");
 }
 

@@ -213,6 +213,7 @@ int EpFinish(uint32_t reboot)
 // TODO: This function is a mess and should be split
 int EpBlobFlash(const char *file_name, uint32_t addr, const Flags *f) {
 	EpBlobData *b = NULL;
+	EpFlashStatus st;
 
 	// Address string, e.g.: 0x12345678
 	char addrStr[12];
@@ -244,10 +245,14 @@ int EpBlobFlash(const char *file_name, uint32_t addr, const Flags *f) {
 	do {
 		sprintf(addrStr, "0x%08X", b->sect * EP_FLASH_SECT_LEN);
 		ProgBarDraw(b->sect, b->sect_total, b->cols, addrStr);
-
-	} while (EP_FLASH_REMAINING == EpFlashNext(b));
+		st = EpFlashNext(b);
+	} while (EP_FLASH_REMAINING == st);
 	sprintf(addrStr, "0x%08X", b->sect * EP_FLASH_SECT_LEN);
 	ProgBarDraw(b->sect, b->sect_total, b->cols, addrStr);
+	if (EP_FLASH_DONE != st) {
+		PrintErr("Flash failed!");
+		goto err;
+	}
 
 	// Send download finish command
 	EpFinish(TRUE);

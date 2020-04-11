@@ -72,7 +72,7 @@ uint16_t *FlashMan::Program(const char filename[], bool autoErase,
 
 	emit RangeChanged(0, *len);
 	emit ValueChanged(0);
-	emit StatusChanged("Programming");
+	emit StatusChanged("Program...");
 	QApplication::processEvents();
 
 	for (i = 0, addr = *start; i < (*len);) {

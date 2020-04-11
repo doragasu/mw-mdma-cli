@@ -25,6 +25,7 @@
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLayout>
+#include <QtWidgets/QComboBox>
 
 /************************************************************************//**
  * Main dialog class
@@ -261,6 +262,8 @@ private:
 	QLineEdit *fileLe;
 	/// Address to upload the firmware to
 	QLineEdit *addrLe;
+	/// SPI flash mode
+	QComboBox *spiTypeCombo;
 
 	/********************************************************************//**
 	 * Initialize the tab interface
