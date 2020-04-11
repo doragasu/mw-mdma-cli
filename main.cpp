@@ -164,6 +164,13 @@ int main( int argc, char **argv )
 	int i;
 	int aux;
 
+#ifdef __OS_WIN
+	// Needed to output text to the console in CLI mode
+	if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+		freopen("CONOUT$", "w", stdout);
+		freopen("CONOUT$", "w", stderr);
+	}
+#endif
 
 	// Set default flag values
 	f.all = 0;

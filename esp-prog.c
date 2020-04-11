@@ -112,7 +112,7 @@ EpBlobData *EpBlobLoad(const char *file_name, uint32_t addr, const Flags *f)
 	}
 
 	// Open and read file
-	if (!(fi = fopen(file_name, "r"))) {
+	if (!(fi = fopen(file_name, "rb"))) {
 		perror(file_name);
 		goto err;
 	}
@@ -125,8 +125,8 @@ EpBlobData *EpBlobLoad(const char *file_name, uint32_t addr, const Flags *f)
 		pos += 3 * sizeof(uint32_t);
 		// Read a sector
 		toRead = MIN(EP_FLASH_SECT_LEN, b->len - readed);
-		if (fread(&b->data[pos], 1, toRead, fi) != toRead) {
-			PrintErr("Reading firmware pos 0x%X:0x%X: ", readed, toRead);
+		if (fread(&b->data[pos], toRead, 1, fi) != 1) {
+			PrintErr("Reading firmware pos 0x%X, %d bytes: ", readed, toRead);
 			perror(NULL);
 			fclose(fi);
 			goto err; 
