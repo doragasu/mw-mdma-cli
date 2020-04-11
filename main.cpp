@@ -34,7 +34,7 @@ Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)
 // VARS
 //=============================================================================
 
-const struct option opt[] = {
+static const struct option opt[] = {
         {"qt-gui",      no_argument,        NULL,   'Q'},
         {"flash",       required_argument,  NULL,   'f'},
         {"read",        required_argument,  NULL,   'r'},
@@ -47,6 +47,7 @@ const struct option opt[] = {
 		{"pushbutton",  no_argument,        NULL,   'p'},
         {"gpio-ctrl",   required_argument,  NULL,   'g'},
 		{"wifi-flash",	required_argument,	NULL,	'w'},
+		{"wifi-mode",	required_argument,	NULL,	'm'},
         {"bootloader",  no_argument,        NULL,   'b'},
 		{"dry-run",     no_argument,		NULL,   'd'},
         {"version",     no_argument,        NULL,   'R'},
@@ -55,7 +56,7 @@ const struct option opt[] = {
         {NULL,          0,                  NULL,    0 }
 };
 
-const char *description[] = {
+static const char * const description[] = {
 	"Start QT GUI",
 	"Flash rom file",
 	"Read ROM/Flash to file",
@@ -68,6 +69,7 @@ const char *description[] = {
 	"Pushbutton status read (bit 1:event, bit0:pressed)",
 	"Manual GPIO control (dangerous!)",
 	"Upload firmware blob to WiFi module",
+	"Set WiFi module flash chip mode (qio, qout, dio, dout)",
 	"Switch to bootloader mode",
 	"Dry run: don't actually do anything",
 	"Show program version",
@@ -75,16 +77,34 @@ const char *description[] = {
 	"Print help screen and exit"
 };
 
+static const char * const esp_flash_mode_str[] = {
+	"qio", "qout", "dio", "dout", NULL
+};
+
 //=============================================================================
 // FUNCTION DECLARATIONS
 //=============================================================================
 
-void PrintVersion(char *prgName) {
+static int str_index(const char *str_in, const char * const str_table[])
+{
+	int i = 0;
+
+	while (str_table[i]) {
+		if (!strcmp(str_in, str_table[i])) {
+			return i;
+		}
+		i++;
+	}
+
+	return -1;
+}
+
+static void PrintVersion(const char *prgName) {
 	printf("%s version %d.%d, Manveru & doragasu 2015-2017.\n", prgName,
 			VERSION_MAJOR, VERSION_MINOR);
 }
 
-void PrintHelp(char *prgName) {
+static void PrintHelp(char *prgName) {
 	int i;
 
 	PrintVersion(prgName);
@@ -138,14 +158,17 @@ int main( int argc, char **argv )
 	// Manufacturer and device ids
 	uint16_t ids[3];
 	// Use QT GUI flag
-	uint8_t useQt = FALSE;
+	bool useQt = false;
 
 	// Just for loop iteration
 	int i;
+	int aux;
 
 
-	// Set all flags to FALSE
+	// Set default flag values
 	f.all = 0;
+	f.flash_mode = ESP_FLASH_UNCHANGED;
+
     // Reads console arguments
     if( argc > 1 )
     {
@@ -154,13 +177,13 @@ int main( int argc, char **argv )
         /// Character returned by getopt_long()
         int c;
 
-        while ((c = getopt_long(argc, argv, "Qf:r:es:A:aVipg:w:bdRvh", opt, &opIdx)) != -1)
+        while ((c = getopt_long(argc, argv, "Qf:r:es:A:aVipg:w:m:bdRvh", opt, &opIdx)) != -1)
         {
 			// Parse command-line options
             switch (c)
             {
 				case 'Q': // Use QT GUI
-					useQt = TRUE;
+					useQt = true;
 					break;
 
                 case 'f': // Write flash
@@ -224,6 +247,15 @@ int main( int argc, char **argv )
 					PrintMemError(errCode);
 					return 1;
 				}
+				break;
+
+				case 'm':
+				aux = str_index(optarg, esp_flash_mode_str);
+				if (aux < 0) {
+					PrintErr("Invalid flash mode %s\n", optarg);
+					return 1;
+				}
+				f.flash_mode = (enum esp_flash_mode)aux;
 				break;
 
                 case 'b': // Bootloader mode
@@ -350,7 +382,11 @@ int main( int argc, char **argv )
 		}
 		if (fWf.file) {
 		   printf(" - Upload WiFi firmware ");
-		   PrintMemImage(&fWf); putchar('\n');
+		   PrintMemImage(&fWf);
+		   if (f.flash_mode < ESP_FLASH_UNCHANGED) {
+			   printf(", mode: %s", esp_flash_mode_str[f.flash_mode]);
+		   }
+		   putchar('\n');
 		}
 		if (f.boot) {
 			printf(" - Enter bootloader\n");

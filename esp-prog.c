@@ -143,28 +143,22 @@ int EpBlobFlash(char file[], uint32_t addr, Flags f) {
 	memset(fBuf + pos, 0xFF, nSect * EP_FLASH_PKT_LEN - pos);
 
 	// Check if this is the first blob and correct flash parameters
-	// if affirmative
+	// if requested by user
 	blobHdr = (EpBlobHdr*)(fBuf + EP_FLASH_PKT_HEAD_LEN);
-	// TODO: Might be interesting allowing the user to configure these params
-	if (0xE9 == blobHdr->magic && 0 == addr) {
-		blobHdr->spiIf = EP_SPI_IF_QIO;
-//		blobHdr->spiIf = EP_SPI_IF_DIO;
-//		blobHdr->spiIf = EP_SPI_IF_DOUT;
-//		blobHdr->spiIf = EP_SPI_IF_QOUT;
+	if (0 == addr && 0xE9 == blobHdr->magic &&
+			f.flash_mode < ESP_FLASH_UNCHANGED) {
+		blobHdr->spiIf = f.flash_mode;
+		// TODO Allow also configuring these
 		blobHdr->flashParam = EP_FLASH_PARAM(EP_SPI_LEN_4M,
 				EP_SPI_SPEED_40M);
 	}
 	
-	// Enter bootloader
+	// Enter bootloader. Delays timing from esptool.py
 	EpReset();
-	DelayMs(50);
-//	DelayMs(500);
+	DelayMs(100);
 	EpBootloader();
-//	DelayMs(5);
 	DelayMs(50);
 	EpRun();
-//	DelayMs(40);	// It looks like this delay is critical!
-	DelayMs(40);	// It looks like this delay is critical!
 
 	// Erase flash and prepare for data download
 	printf("Erasing WiFi module, 0x%08X bytes at 0x%08X... ",
@@ -182,8 +176,6 @@ int EpBlobFlash(char file[], uint32_t addr, Flags f) {
 		goto blob_flash_free;
 	}
 	printf("OK\n");
-
-	DelayMs(150);
 
 	// Flash blob, one sector each time.
 	// TODO: WARNING, might need to unlock DIO

@@ -20,20 +20,33 @@
 
 #include <stdint.h>
 
+/// Flash chip type. Compatible with EpSpiIf enum
+enum esp_flash_mode {
+	ESP_FLASH_QIO = 0,
+	ESP_FLASH_QOUT,
+	ESP_FLASH_DIO,
+	ESP_FLASH_DOUT,
+	ESP_FLASH_UNCHANGED,
+	ESP_FLASH_MAX
+};
+
 /// Commandline flags (for arguments without parameters).
-typedef union {
-	uint8_t all;
-	struct {
-		uint8_t verify:1;		/// Verify flash write if TRUE
-		uint8_t verbose:1;		/// Print extra information on screen
-		uint8_t flashId:1;		/// Show flash chip id
-		uint8_t erase:1;		/// Erase flash
-		uint8_t pushbutton:1;	/// Read pushbutton status
-		uint8_t dry:1;			/// Dry run
-		uint8_t boot:1;			/// Enter bootloader
-		uint8_t auto_erase:1;	/// Automatically erase flash
-		int cols;				/// Number of columns of the terminal
+typedef struct {
+	union {
+		uint8_t all;
+		struct {
+			uint8_t verify:1;		/// Verify flash write if TRUE
+			uint8_t verbose:1;		/// Print extra information on screen
+			uint8_t flashId:1;		/// Show flash chip id
+			uint8_t erase:1;		/// Erase flash
+			uint8_t pushbutton:1;	/// Read pushbutton status
+			uint8_t dry:1;			/// Dry run
+			uint8_t boot:1;			/// Enter bootloader
+			uint8_t auto_erase:1;	/// Automatically erase flash
+		};
 	};
+	enum esp_flash_mode flash_mode;	/// SPI flash mode
+	int cols;				/// Number of columns of the terminal
 } Flags;
 
 /// Prints text only if (verbose==TRUE)
