@@ -60,6 +60,22 @@ static int EpSendCmd(EpCmdOp cmd, char data[], uint16_t len, uint32_t csum) {
 	return buf.resp.hdr.resp;
 }
 
+static uint32_t EraseSize(unsigned int num_sect, unsigned int start_sect)
+{
+	unsigned int head_sectors = EP_SECTORS_PER_BLOCK -
+		(start_sect % EP_SECTORS_PER_BLOCK);
+
+	if (num_sect < head_sectors) {
+		head_sectors = num_sect;
+	}
+
+	if (num_sect < (2 * head_sectors)) {
+		return (num_sect + 1) / 2 * EP_FLASH_SECT_LEN;
+	} else {
+		return (num_sect - head_sectors) * EP_FLASH_SECT_LEN;
+	}
+}
+
 /// Starts download process (deletes flash and prepares for data download).
 static int EpDownloadStart(size_t fLen, uint32_t addr) {
 	uint32_t data[4];
@@ -68,7 +84,7 @@ static int EpDownloadStart(size_t fLen, uint32_t addr) {
 	// First compute number of blocks (rounding up!).
 	data[1] = (fLen + EP_FLASH_SECT_LEN - 1) / EP_FLASH_SECT_LEN;
 	// Now compute total size and fill block size and address.
-	data[0] = data[1] * EP_FLASH_SECT_LEN;
+	data[0] = EraseSize(data[1], addr / EP_FLASH_SECT_LEN);
 	data[2] = EP_FLASH_SECT_LEN;
 	data[3] = addr;
 

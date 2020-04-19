@@ -61,6 +61,9 @@ typedef struct {
 /// Flash sector length (4 KiB)
 #define EP_FLASH_SECT_LEN		(4 * 1024)
 
+/// Block size is 64 KiB
+#define EP_SECTORS_PER_BLOCK		16
+
 /// Header for each flash segment packet
 #define EP_FLASH_PKT_HEAD_LEN	(4 * sizeof(uint32_t))
 
