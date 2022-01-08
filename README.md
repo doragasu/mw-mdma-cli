@@ -1,3 +1,7 @@
+# WARNING: THIS PROJECT HAS MOVED
+
+You can find the most recent version at the [mw-mdma-cli GitLab project page](https://gitlab.com/doragasu/mw-mdma-cli). This repository will be kept as is, and will not be updated anymore.
+
 # mw-mdma-cli
 MegaWiFi MegaDrive Memory Administration (MDMA) interface. This program allows to read and write ROMs from/to MegaWiFi cartridges, using a MegaWiFi programmer. It also allows to upload firmware blobs to the in-cart ESP8266 WiFi module. Starting with version 0.4, the program can also be built with a nice Qt5 GUI (in addition to the command-line interface).
 
